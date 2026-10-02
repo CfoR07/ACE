@@ -1,0 +1,366 @@
+import streamlit as st
+import time
+import random
+from functions import FirefightingSimulation
+
+st.set_page_config(page_title="Autonomous Firefighting Agent", layout="wide")
+
+# Custom Styling for Native Crisp Grid & Telemetry
+st.markdown("""
+<style>
+    .reportview-container, .main, .block-container {
+        background-color: #0e1117;
+        color: #ffffff;
+    }
+    .grid-container {
+        display: inline-block;
+        background-color: #12161f;
+        padding: 12px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        border: 1px solid #232936;
+    }
+    .grid-row {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+    .grid-cell {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+        user-select: none;
+        transition: transform 0.15s ease, background-color 0.2s ease;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .grid-cell:hover {
+        transform: scale(1.05);
+    }
+    /* Cell Types */
+    .cell-wall {
+        background-color: #212631;
+        color: #4a5568;
+        font-size: 13px;
+    }
+    .cell-floor {
+        background-color: #1f6b47;
+        color: #a7f3d0;
+        font-size: 14px;
+    }
+    .cell-station {
+        background-color: #1e3a5f;
+        border: 2px solid #3b82f6;
+    }
+    .cell-agent {
+        background-color: #1d4ed8;
+        border: 2px solid #60a5fa;
+        animation: pulse 1.5s infinite;
+    }
+    .cell-fire {
+        background-color: #b91c1c;
+        border: 2px solid #ef4444;
+        animation: burn 1.2s infinite alternate;
+    }
+    .cell-extinguished {
+        background-color: #374151;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(96, 165, 250, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0); }
+    }
+    @keyframes burn {
+        0% { transform: scale(1); filter: brightness(1); }
+        100% { transform: scale(1.04); filter: brightness(1.2); }
+    }
+    .status-card {
+        background-color: #161b26;
+        border-radius: 10px;
+        padding: 16px;
+        border: 1px solid #232936;
+    }
+    .metric-card {
+        background-color: #161b26;
+        border-radius: 10px;
+        padding: 14px;
+        border: 1px solid #232936;
+        text-align: center;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Preset configurations
+PRESETS = {
+    "Preset 1: Small Office (6x6)": {
+        "grid": [
+            [0, 0, 0, 0, 0, 0],
+            [0, 15, 2, 3, 2, 0],
+            [0, 1, 0, 0, 4, 0],
+            [0, 2, 1, 5, 3, 0],
+            [0, 1, 8, 9, 2, 0],
+            [0, 0, 0, 0, 0, 0]
+        ],
+        "fires": "3,4; 4,2; 1,3; 2,4; 3,1; 4,3",
+        "spread_rate": 8,
+        "single_cost": 2,
+        "splash_cost": 4
+    },
+    "Preset 2: Multi-Room Lab (8x8)": {
+        "grid": [
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 15, 2, 2, 0, 4, 5, 0],
+            [0, 1, 1, 2, 0, 3, 4, 0],
+            [0, 0, 3, 0, 0, 2, 0, 0],
+            [0, 5, 6, 7, 2, 1, 8, 0],
+            [0, 4, 0, 0, 0, 0, 9, 0],
+            [0, 3, 2, 1, 2, 8, 10, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ],
+        "fires": "4,1; 6,6; 2,5; 4,6; 5,6; 6,3",
+        "spread_rate": 10,
+        "single_cost": 2,
+        "splash_cost": 5
+    },
+    "Preset 3: Warehouse & Storage (10x10)": {
+        "grid": [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 15, 2, 3, 1, 0, 2, 3, 4, 0],
+            [0, 2, 0, 0, 2, 0, 3, 0, 5, 0],
+            [0, 3, 0, 8, 7, 6, 5, 0, 6, 0],
+            [0, 2, 0, 9, 10, 8, 4, 0, 7, 0],
+            [0, 1, 0, 0, 0, 0, 3, 0, 8, 0],
+            [0, 2, 3, 4, 5, 2, 1, 0, 9, 0],
+            [0, 0, 2, 0, 0, 3, 2, 0, 5, 0],
+            [0, 1, 1, 2, 3, 4, 5, 6, 4, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ],
+        "fires": "4,4; 3,6; 8,2; 6,3; 1,8; 4,6; 6,5",
+        "spread_rate": 12,
+        "single_cost": 2,
+        "splash_cost": 6
+    }
+}
+
+# Sidebar: Controls & Configuration
+st.sidebar.markdown("### 🎛️ Simulation Controls")
+anim_speed = st.sidebar.slider("Step speed (seconds):", min_value=0.05, max_value=1.0, value=0.35, step=0.05)
+
+ctrl_c1, ctrl_c2 = st.sidebar.columns(2)
+start_run_btn = ctrl_c1.button("▶ Start / Run", key="start_run")
+reset_btn = ctrl_c2.button("🔄 Reset", key="reset_sim")
+single_step_btn = st.sidebar.button("⏭ Single Step", key="single_step")
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🛠️ Custom Building & Fire Input")
+
+preset_choice = st.sidebar.selectbox("Load Example Preset:", list(PRESETS.keys()))
+default_vals = PRESETS[preset_choice]
+
+with st.sidebar.expander("📝 Edit Building Layout & Fires", expanded=False):
+    st.caption("0 = Wall, 1-10 = Floor Priority, 15 = Base Station")
+    grid_str_default = "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])
+    grid_input = st.text_area("Grid Matrix:", grid_str_default, height=140)
+    
+    fires_input = st.text_input("Fire Coordinates (r,c; r,c):", default_vals["fires"])
+    
+    if st.button("🎲 Randomize Fire Locations"):
+        lines = [l.strip().split() for l in grid_input.strip().split("\n") if l.strip()]
+        walkable = []
+        for r, row in enumerate(lines):
+            for c, val in enumerate(row):
+                if val not in ('0', '15'):
+                    walkable.append(f"{r},{c}")
+        if len(walkable) >= 4:
+            picked = random.sample(walkable, min(6, len(walkable)))
+            fires_input = "; ".join(picked)
+            st.session_state["randomized_fires"] = fires_input
+            st.rerun()
+
+    if "randomized_fires" in st.session_state:
+        fires_input = st.session_state["randomized_fires"]
+
+    single_cost = st.number_input("Single Attack Cost (ticks):", min_value=1, value=default_vals["single_cost"])
+    splash_cost = st.number_input("Splash Attack Cost (ticks):", min_value=1, value=default_vals["splash_cost"])
+    spread_rate = st.number_input("Fire Spread Interval (ticks):", min_value=1, value=default_vals["spread_rate"])
+
+# Parse inputs
+def parse_inputs():
+    try:
+        grid = []
+        for line in grid_input.strip().split("\n"):
+            if line.strip():
+                grid.append([int(x) for x in line.strip().split()])
+        station = None
+        for r in range(len(grid)):
+            for c in range(len(grid[0])):
+                if grid[r][c] == 15:
+                    station = (r, c)
+                    break
+            if station:
+                break
+        fires = []
+        for item in fires_input.split(";"):
+            parts = item.strip().split(",")
+            if len(parts) == 2:
+                fires.append((int(parts[0]), int(parts[1])))
+        return grid, station, fires, None
+    except Exception as e:
+        return None, None, None, str(e)
+
+grid, station, fire_sources, err = parse_inputs()
+
+# Initialize Simulation in Session State
+if "sim" not in st.session_state or reset_btn:
+    st.session_state.sim = FirefightingSimulation(
+        grid=grid,
+        station_pos=station,
+        fire_sources=fire_sources,
+        fire_spread_interval=spread_rate,
+        single_cost=single_cost,
+        splash_cost=splash_cost
+    )
+    st.session_state.is_running = False
+
+sim = st.session_state.sim
+
+# Main Dashboard Layout
+st.markdown("## 🚒 Model-Based Firefighting Agent (A* Search)")
+
+# Legend Bar
+st.markdown("""
+<div style="display: flex; gap: 20px; font-size: 13px; margin-bottom: 14px; color: #a0aec0; align-items: center;">
+    <span><span style="display:inline-block; width:12px; height:12px; background:#1f6b47; border-radius:3px; margin-right:4px;"></span> Floor (1-10 Priority)</span>
+    <span><span style="display:inline-block; width:12px; height:12px; background:#212631; border-radius:3px; margin-right:4px;"></span> Wall (0)</span>
+    <span>🔥 Fire</span>
+    <span>🤖 Agent</span>
+    <span>🏠 Station</span>
+</div>
+""", unsafe_allow_html=True)
+
+col_map, col_telemetry = st.columns([1.3, 1.0])
+
+def generate_grid_html(sim):
+    html = '<div class="grid-container">'
+    for r in range(sim.rows):
+        html += '<div class="grid-row">'
+        for c in range(sim.cols):
+            pos = (r, c)
+            val = sim.grid[r][c]
+            
+            if pos == sim.agent_pos:
+                content = '🤖'
+                css = 'grid-cell cell-agent'
+            elif pos in sim.active_fires:
+                content = '🔥'
+                css = 'grid-cell cell-fire'
+            elif pos == sim.station_pos:
+                content = '🏠'
+                css = 'grid-cell cell-station'
+            elif pos in sim.extinguished_history:
+                content = str(val) if val > 0 else ''
+                css = 'grid-cell cell-extinguished'
+            elif val == 0:
+                content = ''
+                css = 'grid-cell cell-wall'
+            else:
+                # Dynamic green shade based on priority
+                content = str(val)
+                css = 'grid-cell cell-floor'
+            
+            html += f'<div class="{css}">{content}</div>'
+        html += '</div>'
+    html += '</div>'
+    return html
+
+with col_map:
+    map_placeholder = st.empty()
+    map_placeholder.markdown(generate_grid_html(sim), unsafe_allow_html=True)
+
+with col_telemetry:
+    st.markdown("### 📊 Agent Status & Telemetry")
+    status_box = st.empty()
+    goal_box = st.empty()
+    path_len_box = st.empty()
+
+    def update_telemetry_ui():
+        status_box.markdown(f"**Agent status:** <span style='color: #48db9d; font-family: monospace;'>{getattr(sim, 'last_action', 'Standby')}</span>", unsafe_allow_html=True)
+        goal_box.markdown(f"**Current Goal:** <span style='background: #1e3a8a; padding: 3px 8px; border-radius: 4px; font-size: 13px; font-family: monospace;'>{getattr(sim, 'current_goal', 'IDLE')}</span>", unsafe_allow_html=True)
+        path_len = len(getattr(sim, 'planned_path', []))
+        path_len_box.markdown(f"**Planned Path Length:** <span style='background: #374151; padding: 3px 8px; border-radius: 4px; font-size: 13px; font-family: monospace;'>{path_len}</span>", unsafe_allow_html=True)
+
+    update_telemetry_ui()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    m_col1, m_col2 = st.columns(2)
+    ext_card = m_col1.empty()
+    steps_card = m_col2.empty()
+
+    def update_cards():
+        ext_card.markdown(f"""
+        <div class="metric-card">
+            <div style="font-size: 13px; color: #a0aec0;">Extinguished</div>
+            <div style="font-size: 2.2rem; font-weight: bold; color: #ffffff;">{sim.fires_extinguished_count}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        steps_card.markdown(f"""
+        <div class="metric-card">
+            <div style="font-size: 13px; color: #a0aec0;">Sim Steps</div>
+            <div style="font-size: 2.2rem; font-weight: bold; color: #ffffff;">{sim.ticks}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    update_cards()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("👁️ Agent Internal Model & Memory State", expanded=True):
+        mem_placeholder = st.empty()
+        def update_memory_state():
+            rem_sources = len(sim.fire_sources)
+            next_t = f"in {sim.next_spawn_tick - sim.ticks}t" if sim.next_spawn_tick and sim.next_spawn_tick > sim.ticks else "None pending"
+            mem_placeholder.markdown(f"""
+            - **Agent Position:** `{sim.agent_pos}`
+            - **Active Fires in Building:** `{len(sim.active_fires)}`
+            - **Total Distance Navigated:** `{sim.total_distance}` blocks
+            - **Upcoming Unignited Fire Sources:** `{rem_sources}` ({next_t})
+            - **Extinguished Blocks Retained:** `{len(sim.extinguished_history)}`
+            """)
+        update_memory_state()
+
+# Handle Single Step execution
+if single_step_btn:
+    if not sim.is_completed:
+        sim.step()
+        map_placeholder.markdown(generate_grid_html(sim), unsafe_allow_html=True)
+        update_telemetry_ui()
+        update_cards()
+        update_memory_state()
+        st.rerun()
+
+# Handle Start / Run Live Animation Loop
+if start_run_btn:
+    st.session_state.is_running = True
+    max_steps = 300
+    steps = 0
+    while not sim.is_completed and st.session_state.is_running and steps < max_steps:
+        sim.step()
+        map_placeholder.markdown(generate_grid_html(sim), unsafe_allow_html=True)
+        update_telemetry_ui()
+        update_cards()
+        update_memory_state()
+        time.sleep(anim_speed)
+        steps += 1
+        if sim.is_completed:
+            st.session_state.is_running = False
+            break
+    st.rerun()
+
+if sim.is_completed:
+    st.success("🎉 Mission Accomplished! All active fire incidents extinguished and agent returned safely to station.")
