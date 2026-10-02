@@ -325,10 +325,12 @@ with col_telemetry:
         def update_memory_state():
             rem_sources = len(sim.fire_sources)
             next_t = f"in {sim.next_spawn_tick - sim.ticks}t" if sim.next_spawn_tick and sim.next_spawn_tick > sim.ticks else "None pending"
+            dfs_depth = len(getattr(sim, 'dfs_stack', []))
             mem_placeholder.markdown(f"""
             - **Agent Position:** `{sim.agent_pos}`
             - **Active Fires in Building:** `{len(sim.active_fires)}`
             - **Total Distance Navigated:** `{sim.total_distance}` blocks
+            - **DFS Backtrack Stack Depth:** `{dfs_depth}`
             - **Upcoming Unignited Fire Sources:** `{rem_sources}` ({next_t})
             - **Extinguished Blocks Retained:** `{len(sim.extinguished_history)}`
             """)

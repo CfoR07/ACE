@@ -94,7 +94,8 @@ class FirefightingSimulation:
         self.ticks = 0
         self.active_fires = {}  # (r, c) -> ignition_tick
         self.extinguished_history = set()
-        self.inspection_queue = []  # safe blocks to inspect after extinguish
+        self.dfs_stack = []          # Stack of (row, col) for DFS backtracking
+        self.recently_extinguished = None  # Block just put out to enter and scan immediately
         self.fire_clusters = []  # list of clusters: {'id', 'source', 'fires': set(), 'priority'}
         self.next_cluster_id = 1
         
@@ -253,19 +254,21 @@ class FirefightingSimulation:
         for f in fires_in_sight:
             self._record_extinguish(f)
             self.extinguished_history.add(f)
-            self.inspection_queue.append(f)
             del self.active_fires[f]
         
+        # Immediate DFS: pick the closest extinguished fire to enter next
+        closest = min(fires_in_sight, key=lambda f: manhattan_distance(self.agent_pos, f))
+        self.recently_extinguished = closest
         self.advance_time(cost)
         self.last_action = f"Splash Extinguish (cleared {len(fires_in_sight)} fires)"
         self.logs.append(f"Tick {self.ticks}: Agent used SPLASH (cost {cost}t) extinguishing {len(fires_in_sight)} fires.")
 
     def perform_single(self, target_fire):
-        """Extinguishes single fire and schedules inspection traversal."""
+        """Extinguishes single fire and targets it for immediate DFS entry."""
         cost = self.single_cost
         self._record_extinguish(target_fire)
         self.extinguished_history.add(target_fire)
-        self.inspection_queue.append(target_fire)
+        self.recently_extinguished = target_fire
         del self.active_fires[target_fire]
         
         self.advance_time(cost)
@@ -280,24 +283,44 @@ class FirefightingSimulation:
         self.fires_extinguished_count += 1
 
     def step(self):
-        """Executes one simulation step for the agent."""
+        """Executes one simulation step for the agent using DFS Backtracking."""
         if self.is_completed:
             return
 
-        # 1. Check if fires in visibility can be extinguished
+        # --- STEP 2 of DFS: Immediately Step Into Extinguished Block ---
+        if self.recently_extinguished is not None:
+            target = self.recently_extinguished
+            self.recently_extinguished = None
+            self.dfs_stack.append(self.agent_pos)
+            self.agent_pos = target
+            self.total_distance += 1
+            self.advance_time(1)
+            self.current_goal = f"DFS_INSPECT_{target}"
+            self.last_action = f"Stepped into extinguished block {self.agent_pos} to inspect"
+            return
+
+        # --- STEP 1 & 3 of DFS: Scan Visibility to Extinguish & Go Deeper ---
         visible_fires = self.get_fires_in_visibility()
         if visible_fires:
             k = len(visible_fires)
-            # Cost comparison: Single cost is k * single_cost + k movement steps
             est_single_cost = (k * self.single_cost) + (2 * k + 1)
-            
             if k >= 2 and self.splash_cost < est_single_cost:
                 self.perform_splash(visible_fires)
             else:
                 self.perform_single(visible_fires[0])
             return
 
-        # 2. Check if there are active fires to approach
+        # --- STEP 4 of DFS: Backtrack when Leaf Node is Reached (No Fires Visible) ---
+        if self.dfs_stack:
+            previous_pos = self.dfs_stack.pop()
+            self.agent_pos = previous_pos
+            self.total_distance += 1
+            self.advance_time(1)
+            self.current_goal = "DFS_BACKTRACK"
+            self.last_action = f"Cluster clear here. Backtracking to {previous_pos}"
+            return
+
+        # --- Normal A* Navigation to Active Fire Clusters ---
         target_cluster = self._select_target_cluster()
         if target_cluster:
             cluster_fires = sorted(target_cluster['fires'], key=lambda f: manhattan_distance(self.agent_pos, f))
@@ -307,7 +330,6 @@ class FirefightingSimulation:
             stand_pos, path = find_safe_stand_pos(self.grid, self.agent_pos, chosen_fire, self.active_fires)
             if stand_pos and path and len(path) > 1:
                 self.planned_path = path[1:]
-                prev = self.agent_pos
                 self.agent_pos = path[1]
                 self.last_action = f"Moving to {self.agent_pos}"
                 self.total_distance += 1
@@ -320,30 +342,10 @@ class FirefightingSimulation:
                     self.perform_single(vis[0])
                     return
 
-        # 3. If no active fires remain, inspect previously extinguished blocks if queued
-        if not self.active_fires and self.inspection_queue:
-            target_inspect = self.inspection_queue[0]
-            self.current_goal = f"INSPECT_{target_inspect}"
-            if self.agent_pos == target_inspect:
-                self.inspection_queue.pop(0)
-            else:
-                path = astar_search(self.grid, self.agent_pos, target_inspect, self.active_fires)
-                if path and len(path) > 1:
-                    self.planned_path = path[1:]
-                    prev = self.agent_pos
-                    self.agent_pos = path[1]
-                    self.last_action = f"Inspecting {target_inspect}"
-                    self.total_distance += 1
-                    self.advance_time(1)
-                    return
-                else:
-                    self.inspection_queue.pop(0)
-
-        # 4. If no fires and inspection done, return to base
-        if not self.active_fires and not self.inspection_queue:
+        # --- Return to Station Once All Clusters are Cleared ---
+        if not self.active_fires and not self.dfs_stack:
             self.current_goal = "RETURN_STATION"
             if self.agent_pos == self.station_pos:
-                # Check if future fires exceed cutoff or are exhausted
                 if not self.fire_sources:
                     self.is_completed = True
                     self.last_action = "Safely docked at Base Station"
@@ -360,7 +362,6 @@ class FirefightingSimulation:
                 path = astar_search(self.grid, self.agent_pos, self.station_pos, self.active_fires)
                 if path and len(path) > 1:
                     self.planned_path = path[1:]
-                    prev = self.agent_pos
                     self.agent_pos = path[1]
                     self.last_action = f"Returning to base ({self.agent_pos})"
                     self.total_distance += 1
