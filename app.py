@@ -63,8 +63,13 @@ st.markdown("""
         animation: pulse 1.5s infinite;
     }
     .cell-fire {
-        background-color: #b91c1c;
-        border: 2px solid #ef4444;
+        background-color: #e65100;
+        border: 2px solid #ff9800;
+        animation: burn 1.2s infinite alternate;
+    }
+    .cell-fire-spread {
+        background-color: #880e4f;
+        border: 2px solid #e91e63;
         animation: burn 1.2s infinite alternate;
     }
     .cell-extinguished {
@@ -236,10 +241,11 @@ st.markdown("## 🚒 Model-Based Firefighting Agent (A* Search)")
 
 # Legend Bar
 st.markdown("""
-<div style="display: flex; gap: 20px; font-size: 13px; margin-bottom: 14px; color: #a0aec0; align-items: center;">
+<div style="display: flex; gap: 20px; font-size: 13px; margin-bottom: 14px; color: #a0aec0; align-items: center; flex-wrap: wrap;">
     <span><span style="display:inline-block; width:12px; height:12px; background:#1f6b47; border-radius:3px; margin-right:4px;"></span> Floor (1-10 Priority)</span>
     <span><span style="display:inline-block; width:12px; height:12px; background:#212631; border-radius:3px; margin-right:4px;"></span> Wall (0)</span>
-    <span>🔥 Fire</span>
+    <span>🔥 Initial Fire</span>
+    <span><span style="display:inline-block; width:12px; height:12px; background:#880e4f; border:1px solid #e91e63; border-radius:3px; margin-right:4px;"></span>🔥 Spread Fire</span>
     <span>🤖 Agent</span>
     <span>🏠 Station</span>
 </div>
@@ -260,7 +266,10 @@ def generate_grid_html(sim):
                 css = 'grid-cell cell-agent'
             elif pos in sim.active_fires:
                 content = '🔥'
-                css = 'grid-cell cell-fire'
+                if hasattr(sim, 'spread_fires') and pos in sim.spread_fires:
+                    css = 'grid-cell cell-fire-spread'
+                else:
+                    css = 'grid-cell cell-fire'
             elif pos == sim.station_pos:
                 content = '🏠'
                 css = 'grid-cell cell-station'
@@ -326,11 +335,15 @@ with col_telemetry:
             rem_sources = len(sim.fire_sources)
             next_t = f"in {sim.next_spawn_tick - sim.ticks}t" if sim.next_spawn_tick and sim.next_spawn_tick > sim.ticks else "None pending"
             dfs_depth = len(getattr(sim, 'dfs_stack', []))
+            reported_str = ", ".join([f"({r},{c})" for r, c in getattr(sim, 'reported_fires', [])]) if getattr(sim, 'reported_fires', None) else "None"
+            cleared_info = f"{sim.fires_cleared_tick} ticks" if getattr(sim, 'fires_cleared_tick', None) is not None else "Active"
             mem_placeholder.markdown(f"""
+            - **Reported Fire Coordinates:** `{reported_str}`
             - **Agent Position:** `{sim.agent_pos}`
             - **Active Fires in Building:** `{len(sim.active_fires)}`
             - **Total Distance Navigated:** `{sim.total_distance}` blocks
             - **DFS Backtrack Stack Depth:** `{dfs_depth}`
+            - **Time to Extinguish All Fires:** `{cleared_info}`
             - **Upcoming Unignited Fire Sources:** `{rem_sources}` ({next_t})
             - **Extinguished Blocks Retained:** `{len(sim.extinguished_history)}`
             """)
@@ -365,4 +378,5 @@ if start_run_btn:
     st.rerun()
 
 if sim.is_completed:
-    st.success("🎉 Mission Accomplished! All active fire incidents extinguished and agent returned safely to station.")
+    clear_time_str = f"**{sim.fires_cleared_tick} ticks**" if getattr(sim, 'fires_cleared_tick', None) is not None else f"**{sim.ticks} ticks**"
+    st.success(f"🎉 **Mission Accomplished!** All fires put off in {clear_time_str}. Total mission time (including return to station): **{sim.ticks} ticks** | Total distance: **{sim.total_distance} blocks**.")

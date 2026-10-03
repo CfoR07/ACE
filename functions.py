@@ -85,7 +85,8 @@ class FirefightingSimulation:
         self.agent_pos = station_pos
         
         # Fire configuration
-        self.fire_sources = list(fire_sources)  # list of potential spawn locations
+        self.reported_fires = list(fire_sources)  # Preserved list of all reported fires
+        self.fire_sources = list(fire_sources)    # Active pool of unignited fires
         self.fire_spread_interval = fire_spread_interval  # ticks between spreads
         self.single_cost = single_cost
         self.splash_cost = splash_cost
@@ -93,6 +94,7 @@ class FirefightingSimulation:
         # State tracking
         self.ticks = 0
         self.active_fires = {}  # (r, c) -> ignition_tick
+        self.spread_fires = set()  # (r, c) positions caused by spread
         self.extinguished_history = set()
         self.dfs_stack = []          # Stack of (row, col) for DFS backtracking
         self.recently_extinguished = None  # Block just put out to enter and scan immediately
@@ -102,6 +104,7 @@ class FirefightingSimulation:
         # Performance metrics
         self.total_distance = 0
         self.fires_extinguished_count = 0
+        self.fires_cleared_tick = None  # Tick when last active fire was extinguished
         self.response_times = []  # ticks taken from fire ignition to put out
         self.severity_at_extinguish = []  # age in ticks of fire when put out
         self.logs = []
@@ -216,6 +219,7 @@ class FirefightingSimulation:
                 new_burns.extend(chosen)
         
         for pos in new_burns:
+            self.spread_fires.add(pos)
             self._ignite_fire(pos)
 
     def advance_time(self, duration_ticks):
@@ -255,11 +259,14 @@ class FirefightingSimulation:
             self._record_extinguish(f)
             self.extinguished_history.add(f)
             del self.active_fires[f]
+            self.spread_fires.discard(f)
         
         # Immediate DFS: pick the closest extinguished fire to enter next
         closest = min(fires_in_sight, key=lambda f: manhattan_distance(self.agent_pos, f))
         self.recently_extinguished = closest
         self.advance_time(cost)
+        if not self.active_fires and not self.fire_sources and self.fires_cleared_tick is None:
+            self.fires_cleared_tick = self.ticks
         self.last_action = f"Splash Extinguish (cleared {len(fires_in_sight)} fires)"
         self.logs.append(f"Tick {self.ticks}: Agent used SPLASH (cost {cost}t) extinguishing {len(fires_in_sight)} fires.")
 
@@ -270,8 +277,11 @@ class FirefightingSimulation:
         self.extinguished_history.add(target_fire)
         self.recently_extinguished = target_fire
         del self.active_fires[target_fire]
+        self.spread_fires.discard(target_fire)
         
         self.advance_time(cost)
+        if not self.active_fires and not self.fire_sources and self.fires_cleared_tick is None:
+            self.fires_cleared_tick = self.ticks
         self.last_action = f"Single Extinguish at {target_fire}"
         self.logs.append(f"Tick {self.ticks}: Agent used SINGLE (cost {cost}t) on fire at {target_fire}.")
 
