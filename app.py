@@ -373,7 +373,6 @@ with col_telemetry:
             reported_str = ", ".join([f"({r},{c})" for r, c in getattr(sim, 'reported_fires', [])]) if getattr(sim, 'reported_fires', None) else "None"
             cleared_info = f"{sim.fires_cleared_tick} ticks" if getattr(sim, 'fires_cleared_tick', None) is not None else "Active"
             mem_placeholder.markdown(f"""
-            - **Reported Fire Coordinates:** `{reported_str}`
             - **Current Active Fires ({len(active_coords_list)}):** `{active_str}`
             - **Agent Position:** `{sim.agent_pos}`
             - **Total Distance Navigated:** `{sim.total_distance}` blocks
