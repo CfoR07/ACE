@@ -155,28 +155,37 @@ PRESETS = {
 }
 
 # Sidebar: Controls & Configuration
-st.sidebar.markdown("### 🎛️ Simulation Controls")
+st.sidebar.markdown("### Simulation Controls")
 anim_speed = st.sidebar.slider("Step speed (seconds):", min_value=0.05, max_value=1.0, value=0.35, step=0.05)
 
 ctrl_c1, ctrl_c2 = st.sidebar.columns(2)
-start_run_btn = ctrl_c1.button("▶ Start / Run", key="start_run")
-reset_btn = ctrl_c2.button("🔄 Reset", key="reset_sim")
-single_step_btn = st.sidebar.button("⏭ Single Step", key="single_step")
+start_run_btn = ctrl_c1.button("Start / Run", key="start_run")
+reset_btn = ctrl_c2.button("Reset", key="reset_sim")
+single_step_btn = st.sidebar.button("Single Step", key="single_step")
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🛠️ Custom Building & Fire Input")
+st.sidebar.markdown("### Custom Building & Fire Input")
 
-preset_choice = st.sidebar.selectbox("Load Example Preset:", list(PRESETS.keys()))
+preset_choice = st.sidebar.selectbox("Load Example Preset:", list(PRESETS.keys()), key="preset_choice_box")
 default_vals = PRESETS[preset_choice]
 
-with st.sidebar.expander("📝 Edit Building Layout & Fires", expanded=False):
+# Check if preset changed to reset custom inputs
+if "current_preset" not in st.session_state or st.session_state["current_preset"] != preset_choice:
+    st.session_state["current_preset"] = preset_choice
+    st.session_state["grid_text"] = "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])
+    st.session_state["fires_text"] = default_vals["fires"]
+    if "randomized_fires" in st.session_state:
+        del st.session_state["randomized_fires"]
+
+with st.sidebar.expander("Edit Building Layout & Fires", expanded=False):
     st.caption("0 = Wall, 1-10 = Floor Priority, 15 = Base Station")
-    grid_str_default = "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])
-    grid_input = st.text_area("Grid Matrix:", grid_str_default, height=140)
+    grid_input = st.text_area("Grid Matrix:", value=st.session_state.get("grid_text", "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])), height=140, key="grid_area")
+    st.session_state["grid_text"] = grid_input
     
-    fires_input = st.text_input("Fire Coordinates (r,c; r,c):", default_vals["fires"])
+    fires_input = st.text_input("Fire Coordinates (r,c; r,c):", value=st.session_state.get("fires_text", default_vals["fires"]), key="fires_input_field")
+    st.session_state["fires_text"] = fires_input
     
-    if st.button("🎲 Randomize Fire Locations"):
+    if st.button("Randomize Fire Locations"):
         lines = [l.strip().split() for l in grid_input.strip().split("\n") if l.strip()]
         walkable = []
         for r, row in enumerate(lines):
@@ -185,12 +194,8 @@ with st.sidebar.expander("📝 Edit Building Layout & Fires", expanded=False):
                     walkable.append(f"{r},{c}")
         if len(walkable) >= 4:
             picked = random.sample(walkable, min(6, len(walkable)))
-            fires_input = "; ".join(picked)
-            st.session_state["randomized_fires"] = fires_input
+            st.session_state["fires_text"] = "; ".join(picked)
             st.rerun()
-
-    if "randomized_fires" in st.session_state:
-        fires_input = st.session_state["randomized_fires"]
 
     single_cost = st.number_input("Single Attack Cost (ticks):", min_value=1, value=default_vals["single_cost"])
     splash_cost = st.number_input("Splash Attack Cost (ticks):", min_value=1, value=default_vals["splash_cost"])
@@ -223,7 +228,11 @@ def parse_inputs():
 grid, station, fire_sources, err = parse_inputs()
 
 # Initialize Simulation in Session State
-if "sim" not in st.session_state or reset_btn:
+needs_reinit = ("sim" not in st.session_state or reset_btn or 
+                st.session_state.get("last_initialized_fires") != fires_input or 
+                st.session_state.get("last_initialized_grid") != grid_input)
+
+if needs_reinit:
     st.session_state.sim = FirefightingSimulation(
         grid=grid,
         station_pos=station,
@@ -232,22 +241,24 @@ if "sim" not in st.session_state or reset_btn:
         single_cost=single_cost,
         splash_cost=splash_cost
     )
+    st.session_state["last_initialized_fires"] = fires_input
+    st.session_state["last_initialized_grid"] = grid_input
     st.session_state.is_running = False
 
 sim = st.session_state.sim
 
 # Main Dashboard Layout
-st.markdown("## 🚒 Model-Based Firefighting Agent (A* Search)")
+st.markdown("## Model-Based Firefighting Agent (A* Search)")
 
 # Legend Bar
 st.markdown("""
 <div style="display: flex; gap: 20px; font-size: 13px; margin-bottom: 14px; color: #a0aec0; align-items: center; flex-wrap: wrap;">
     <span><span style="display:inline-block; width:12px; height:12px; background:#1f6b47; border-radius:3px; margin-right:4px;"></span> Floor (1-10 Priority)</span>
     <span><span style="display:inline-block; width:12px; height:12px; background:#212631; border-radius:3px; margin-right:4px;"></span> Wall (0)</span>
-    <span>🔥 Initial Fire</span>
-    <span><span style="display:inline-block; width:12px; height:12px; background:#880e4f; border:1px solid #e91e63; border-radius:3px; margin-right:4px;"></span>🔥 Spread Fire</span>
-    <span>🤖 Agent</span>
-    <span>🏠 Station</span>
+    <span><span style="display:inline-block; width:12px; height:12px; background:#e65100; border-radius:3px; margin-right:4px;"></span> Initial Fire</span>
+    <span><span style="display:inline-block; width:12px; height:12px; background:#880e4f; border:1px solid #e91e63; border-radius:3px; margin-right:4px;"></span> Spread Fire</span>
+    <span><span style="display:inline-block; width:12px; height:12px; background:#1d4ed8; border-radius:3px; margin-right:4px;"></span> Agent</span>
+    <span><span style="display:inline-block; width:12px; height:12px; background:#1e3a5f; border:1px solid #3b82f6; border-radius:3px; margin-right:4px;"></span> Station</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -294,7 +305,7 @@ with col_map:
     map_placeholder.markdown(generate_grid_html(sim), unsafe_allow_html=True)
 
 with col_telemetry:
-    st.markdown("### 📊 Agent Status & Telemetry")
+    st.markdown("### Agent Status & Telemetry")
     status_box = st.empty()
     goal_box = st.empty()
     path_len_box = st.empty()
@@ -329,18 +340,23 @@ with col_telemetry:
     update_cards()
 
     st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("👁️ Agent Internal Model & Memory State", expanded=True):
+    with st.expander("Agent Internal Model & Memory State", expanded=True):
         mem_placeholder = st.empty()
         def update_memory_state():
             rem_sources = len(sim.fire_sources)
             next_t = f"in {sim.next_spawn_tick - sim.ticks}t" if sim.next_spawn_tick and sim.next_spawn_tick > sim.ticks else "None pending"
             dfs_depth = len(getattr(sim, 'dfs_stack', []))
+            
+            # Formatted list of active fires coordinates currently burning
+            active_coords_list = list(sim.active_fires.keys())
+            active_str = ", ".join([f"({r},{c})" for r, c in active_coords_list]) if active_coords_list else "None (All Cleared)"
+            
             reported_str = ", ".join([f"({r},{c})" for r, c in getattr(sim, 'reported_fires', [])]) if getattr(sim, 'reported_fires', None) else "None"
             cleared_info = f"{sim.fires_cleared_tick} ticks" if getattr(sim, 'fires_cleared_tick', None) is not None else "Active"
             mem_placeholder.markdown(f"""
             - **Reported Fire Coordinates:** `{reported_str}`
+            - **Current Active Fires ({len(active_coords_list)}):** `{active_str}`
             - **Agent Position:** `{sim.agent_pos}`
-            - **Active Fires in Building:** `{len(sim.active_fires)}`
             - **Total Distance Navigated:** `{sim.total_distance}` blocks
             - **DFS Backtrack Stack Depth:** `{dfs_depth}`
             - **Time to Extinguish All Fires:** `{cleared_info}`
@@ -379,4 +395,4 @@ if start_run_btn:
 
 if sim.is_completed:
     clear_time_str = f"**{sim.fires_cleared_tick} ticks**" if getattr(sim, 'fires_cleared_tick', None) is not None else f"**{sim.ticks} ticks**"
-    st.success(f"🎉 **Mission Accomplished!** All fires put off in {clear_time_str}. Total mission time (including return to station): **{sim.ticks} ticks** | Total distance: **{sim.total_distance} blocks**.")
+    st.success(f"Mission Accomplished! All fires put off in {clear_time_str}. Total mission time (including return to station): **{sim.ticks} ticks** | Total distance: **{sim.total_distance} blocks**.")
