@@ -206,8 +206,16 @@ def parse_inputs():
     try:
         grid = []
         for line in grid_input.strip().split("\n"):
-            if line.strip():
-                grid.append([int(x) for x in line.strip().split()])
+            line = line.strip()
+            if not line:
+                continue
+            # If spaces are used: split on whitespace
+            if " " in line:
+                grid.append([int(x) for x in line.split()])
+            else:
+                # If typed as contiguous digits: parse character by character
+                grid.append([int(ch) for ch in line])
+                
         station = None
         for r in range(len(grid)):
             for c in range(len(grid[0])):
@@ -216,21 +224,28 @@ def parse_inputs():
                     break
             if station:
                 break
+                
         fires = []
         for item in fires_input.split(";"):
             parts = item.strip().split(",")
             if len(parts) == 2:
                 fires.append((int(parts[0]), int(parts[1])))
+                
+        if not station:
+            return grid, None, fires, "No Base Station (value 15) found in the grid matrix! Please add a '15' block for the agent's station."
+        if not fires:
+            return grid, station, fires, "No fire coordinates specified! Please enter at least one fire position."
+            
         return grid, station, fires, None
     except Exception as e:
-        return None, None, None, str(e)
+        return None, None, None, f"Matrix parsing error: {e}"
 
 grid, station, fire_sources, err = parse_inputs()
 
 # Initialize Simulation in Session State
-needs_reinit = ("sim" not in st.session_state or reset_btn or 
+needs_reinit = (err is None and ("sim" not in st.session_state or reset_btn or 
                 st.session_state.get("last_initialized_fires") != fires_input or 
-                st.session_state.get("last_initialized_grid") != grid_input)
+                st.session_state.get("last_initialized_grid") != grid_input))
 
 if needs_reinit:
     st.session_state.sim = FirefightingSimulation(
@@ -245,7 +260,11 @@ if needs_reinit:
     st.session_state["last_initialized_grid"] = grid_input
     st.session_state.is_running = False
 
-sim = st.session_state.sim
+sim = st.session_state.get("sim", None)
+
+if err:
+    st.error(f"Input Error: {err}")
+    st.stop()
 
 # Main Dashboard Layout
 st.markdown("## Model-Based Firefighting Agent (A* Search)")
