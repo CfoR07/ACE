@@ -1,7 +1,11 @@
 import streamlit as st
 import time
 import random
+import importlib
+import functions
+importlib.reload(functions)
 from functions import FirefightingSimulation
+
 
 st.set_page_config(page_title="Autonomous Firefighting Agent", layout="wide")
 

@@ -102,6 +102,8 @@ class FirefightingSimulation:
         self.pending_enter_cell = None  # Pointer to next cell to enter
         self.splash_cluster_cells = []  # Remaining extinguished blocks from splash awaiting inspection
         self.splash_entry_stack_depth = 0  # Stack depth when entering the splash cluster
+        self.splash_junction_cell = None  # Splash cell currently being inspected (return point for connected branches)
+        self.in_connected_branch = False  # True when exploring a connected branch branching off from splash_junction_cell
         self.pending_dfs_cells = []  # Alias/compat for pending cells awaiting DFS inspection
         self.inspected_cells = set()
 
@@ -242,13 +244,20 @@ class FirefightingSimulation:
             return
 
         if self.pending_enter_cell is not None:
-            self.planned_path = [self.pending_enter_cell]
+            if manhattan_distance(self.agent_pos, self.pending_enter_cell) == 1:
+                self.planned_path = [self.pending_enter_cell]
+            else:
+                p = astar_search(self.grid, self.agent_pos, self.pending_enter_cell, self.active_fires)
+                self.planned_path = p[1:] if p else [self.pending_enter_cell]
             return
 
-        if self.splash_cluster_cells:
-            if len(self.dfs_stack) > self.splash_entry_stack_depth + 1:
+
+        if self.in_connected_branch and self.splash_junction_cell is not None:
+            if self.agent_pos != self.splash_junction_cell and self.dfs_stack:
                 self.planned_path = [self.dfs_stack[-1]]
                 return
+
+        if self.splash_cluster_cells:
             adj = next((c for c in self.splash_cluster_cells if manhattan_distance(self.agent_pos, c) == 1), None)
             if adj:
                 self.planned_path = [adj]
@@ -359,6 +368,7 @@ class FirefightingSimulation:
             self.extinguished_history.add(f)
             del self.active_fires[f]
             self.spread_fires.discard(f)
+            self.inspected_cells.discard(f)
         
         self.advance_time(cost)
         if not self.active_fires and not self.fire_sources and self.fires_cleared_tick is None:
@@ -369,11 +379,13 @@ class FirefightingSimulation:
         
         # Prepare to enter EVERY extinguished cell in the splash cluster (PPT Slide 5, 8, 9 & user requirement)
         # Sort so orthogonally adjacent cells are entered first, followed by remaining cluster cells
-        uninspected = [f for f in fires_in_sight if f not in self.inspected_cells]
-        uninspected.sort(key=lambda c: (manhattan_distance(self.agent_pos, c) != 1, manhattan_distance(self.agent_pos, c)))
-        self.pending_enter_cell = uninspected[0] if uninspected else None
-        self.splash_cluster_cells = uninspected[1:] if len(uninspected) > 1 else []
+        cluster_fires = list(fires_in_sight)
+        cluster_fires.sort(key=lambda c: (manhattan_distance(self.agent_pos, c) != 1, manhattan_distance(self.agent_pos, c)))
+        self.pending_enter_cell = cluster_fires[0] if cluster_fires else None
+        self.splash_cluster_cells = cluster_fires[1:] if len(cluster_fires) > 1 else []
         self.pending_dfs_cells = self.splash_cluster_cells
+        self.splash_junction_cell = None
+        self.in_connected_branch = False
         self.splash_entry_stack_depth = len(self.dfs_stack)
 
         self._update_plan_telemetry()
@@ -386,6 +398,8 @@ class FirefightingSimulation:
         self.extinguished_history.add(target_fire)
         del self.active_fires[target_fire]
         self.spread_fires.discard(target_fire)
+        self.inspected_cells.discard(target_fire)
+
         
         self.advance_time(cost)
         if not self.active_fires and not self.fire_sources and self.fires_cleared_tick is None:
@@ -395,12 +409,14 @@ class FirefightingSimulation:
         self.logs.append(f"Tick {self.ticks}: Agent used SINGLE SPRAY (cost {cost}t) on fire at {target_fire}.")
         
         # Prepare to enter extinguished cell for DFS inspection (PPT Slide 5, 8, 9)
-        if target_fire not in self.inspected_cells:
-            self.pending_enter_cell = target_fire
-        if not self.splash_cluster_cells:
+        self.pending_enter_cell = target_fire
+        if self.splash_junction_cell is not None:
+            self.in_connected_branch = True
+        elif not self.splash_cluster_cells:
             self.splash_entry_stack_depth = len(self.dfs_stack)
             
         self._update_plan_telemetry()
+
 
 
     def _record_extinguish(self, fire_pos):
@@ -420,19 +436,21 @@ class FirefightingSimulation:
         # As specified in PPT Slide 5, 6, 8, 9 & user requirement:
         # After extinguishing fire(s), agent enters cold extinguished cell (1 tick),
         # pushing the origin stand cell onto self.dfs_stack for backtracking.
+        # If target is diagonal, moves orthogonally towards it until entered.
         # ---------------------------------------------------------------------
         if self.pending_enter_cell is not None:
             target_cell = self.pending_enter_cell
-            self.pending_enter_cell = None
-            if (target_cell not in self.active_fires and 
-                self.grid[target_cell[0]][target_cell[1]] != 0 and 
-                manhattan_distance(self.agent_pos, target_cell) == 1):
-                
+            if target_cell in self.active_fires or self.grid[target_cell[0]][target_cell[1]] == 0:
+                self.pending_enter_cell = None
+            elif manhattan_distance(self.agent_pos, target_cell) == 1:
+                self.pending_enter_cell = None
                 self.dfs_stack.append(self.agent_pos)
                 self.agent_pos = target_cell
                 self.inspected_cells.add(target_cell)
                 if target_cell in self.splash_cluster_cells:
                     self.splash_cluster_cells.remove(target_cell)
+                if not self.in_connected_branch:
+                    self.splash_junction_cell = target_cell
                 self.total_distance += 1
                 self.advance_time(1)
                 self.current_goal = "DFS_INSPECT_ROOM"
@@ -440,6 +458,21 @@ class FirefightingSimulation:
                 self.logs.append(f"Tick {self.ticks}: Agent entered extinguished room at {self.agent_pos} (Stack Depth: {len(self.dfs_stack)}).")
                 self._update_plan_telemetry()
                 return
+            else:
+                # Target is not orthogonally adjacent yet (e.g. diagonal within 3x3):
+                # KEEP self.pending_enter_cell and take an orthogonal step towards it!
+                path = astar_search(self.grid, self.agent_pos, target_cell, self.active_fires)
+                if path and len(path) > 1:
+                    self.dfs_stack.append(self.agent_pos)
+                    self.agent_pos = path[1]
+                    self.total_distance += 1
+                    self.advance_time(1)
+                    self.current_goal = "DFS_INSPECT_ROOM"
+                    self.last_action = f"Moving towards extinguished cell {target_cell} ({self.agent_pos})"
+                    self._update_plan_telemetry()
+                    return
+                else:
+                    self.pending_enter_cell = None
 
         # ---------------------------------------------------------------------
         # PHASE 2: SENSOR CHECK (Connected Active Fires Prioritization)
@@ -451,6 +484,8 @@ class FirefightingSimulation:
         # ---------------------------------------------------------------------
         visible_fires = self.get_fires_in_visibility()
         if visible_fires:
+            if self.splash_junction_cell is not None:
+                self.in_connected_branch = True
             if len(visible_fires) >= 2:
                 self.perform_splash(visible_fires)
                 return
@@ -463,6 +498,8 @@ class FirefightingSimulation:
                 # Diagonal single extinguish is FORBIDDEN: navigate to safe orthogonal stand pos for this fire
                 stand, path = find_safe_stand_pos(self.grid, self.agent_pos, target_f, self.active_fires)
                 if stand and path and len(path) > 1:
+                    if self.splash_junction_cell is not None or self.dfs_stack:
+                        self.dfs_stack.append(self.agent_pos)
                     self.agent_pos = path[1]
                     self.total_distance += 1
                     self.advance_time(1)
@@ -484,36 +521,46 @@ class FirefightingSimulation:
         self.pending_dfs_cells = self.splash_cluster_cells
 
         # Condition A: In connected branch, must come back to splash junction cell!
-        if self.splash_cluster_cells and len(self.dfs_stack) > self.splash_entry_stack_depth + 1:
-            backtrack_target = self.dfs_stack.pop()
-            if manhattan_distance(self.agent_pos, backtrack_target) == 1:
-                self.agent_pos = backtrack_target
-                self.total_distance += 1
-                self.advance_time(1)
-                self.current_goal = "DFS_BACKTRACK"
-                self.last_action = f"DFS Backtracking to hallway ({self.agent_pos})"
-                self.logs.append(f"Tick {self.ticks}: Connected branch clear. Backtracked to {self.agent_pos} (Stack Depth: {len(self.dfs_stack)}).")
-                self._update_plan_telemetry()
-                return
-            else:
-                path = astar_search(self.grid, self.agent_pos, backtrack_target, self.active_fires)
-                if path and len(path) > 1:
-                    self.agent_pos = path[1]
+        if self.in_connected_branch and self.splash_junction_cell is not None:
+            if self.agent_pos == self.splash_junction_cell:
+                self.in_connected_branch = False
+            elif self.dfs_stack:
+                backtrack_target = self.dfs_stack.pop()
+                if manhattan_distance(self.agent_pos, backtrack_target) == 1:
+                    self.agent_pos = backtrack_target
                     self.total_distance += 1
                     self.advance_time(1)
                     self.current_goal = "DFS_BACKTRACK"
-                    self.last_action = f"DFS Backtracking towards {backtrack_target} ({self.agent_pos})"
+                    self.last_action = f"DFS Backtracking to hallway ({self.agent_pos})"
+                    self.logs.append(f"Tick {self.ticks}: Connected branch clear. Backtracked to {self.agent_pos} (Stack Depth: {len(self.dfs_stack)}).")
+                    if self.agent_pos == self.splash_junction_cell:
+                        self.in_connected_branch = False
                     self._update_plan_telemetry()
                     return
+                else:
+                    path = astar_search(self.grid, self.agent_pos, backtrack_target, self.active_fires)
+                    if path and len(path) > 1:
+                        self.agent_pos = path[1]
+                        self.total_distance += 1
+                        self.advance_time(1)
+                        self.current_goal = "DFS_BACKTRACK"
+                        self.last_action = f"DFS Backtracking towards {backtrack_target} ({self.agent_pos})"
+                        if self.agent_pos == self.splash_junction_cell:
+                            self.in_connected_branch = False
+                        self._update_plan_telemetry()
+                        return
+            else:
+                self.in_connected_branch = False
 
-        # Condition B: At splash junction, advance to next splash cluster cell
-        if self.splash_cluster_cells:
+        # Condition B: Advance to next splash cluster cell
+        if self.splash_cluster_cells and not self.in_connected_branch:
             next_c = min(self.splash_cluster_cells, key=lambda c: manhattan_distance(self.agent_pos, c))
             if manhattan_distance(self.agent_pos, next_c) == 1:
                 self.splash_cluster_cells.remove(next_c)
                 self.pending_dfs_cells = self.splash_cluster_cells
                 self.dfs_stack.append(self.agent_pos)
                 self.agent_pos = next_c
+                self.splash_junction_cell = next_c
                 self.inspected_cells.add(next_c)
                 self.total_distance += 1
                 self.advance_time(1)
@@ -525,6 +572,7 @@ class FirefightingSimulation:
             else:
                 path = astar_search(self.grid, self.agent_pos, next_c, self.active_fires)
                 if path and len(path) > 1:
+                    self.dfs_stack.append(self.agent_pos)
                     self.agent_pos = path[1]
                     self.total_distance += 1
                     self.advance_time(1)
@@ -533,8 +581,13 @@ class FirefightingSimulation:
                     self._update_plan_telemetry()
                     return
 
-        # Condition C: No visible fires and no splash cells -> Backtrack out!
-        if self.dfs_stack:
+        # When all splash cluster cells are visited:
+        if not self.splash_cluster_cells:
+            self.splash_junction_cell = None
+            self.in_connected_branch = False
+
+        # Condition C: No visible fires, no pending enter cell, and no splash cells -> Backtrack out!
+        if self.pending_enter_cell is None and not self.splash_cluster_cells and self.dfs_stack:
             backtrack_target = self.dfs_stack.pop()
             if manhattan_distance(self.agent_pos, backtrack_target) == 1:
                 self.agent_pos = backtrack_target
@@ -555,6 +608,7 @@ class FirefightingSimulation:
                     self.last_action = f"DFS Backtracking towards {backtrack_target} ({self.agent_pos})"
                     self._update_plan_telemetry()
                     return
+
 
         # ---------------------------------------------------------------------
         # PHASE 4: MISSION COMPLETE / RETURN TO STATION CHECK
