@@ -172,21 +172,16 @@ default_vals = PRESETS[preset_choice]
 # Check if preset changed to reset custom inputs
 if "current_preset" not in st.session_state or st.session_state["current_preset"] != preset_choice:
     st.session_state["current_preset"] = preset_choice
-    st.session_state["grid_text"] = "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])
-    st.session_state["fires_text"] = default_vals["fires"]
-    if "randomized_fires" in st.session_state:
-        del st.session_state["randomized_fires"]
+    st.session_state["grid_area"] = "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])
+    st.session_state["fires_input_field"] = default_vals["fires"]
 
 with st.sidebar.expander("Edit Building Layout & Fires", expanded=False):
     st.caption("0 = Wall, 1-10 = Floor Priority, 15 = Base Station")
-    grid_input = st.text_area("Grid Matrix:", value=st.session_state.get("grid_text", "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])), height=140, key="grid_area")
-    st.session_state["grid_text"] = grid_input
+    grid_input = st.text_area("Grid Matrix:", key="grid_area", height=140)
     
-    fires_input = st.text_input("Fire Coordinates (r,c; r,c):", value=st.session_state.get("fires_text", default_vals["fires"]), key="fires_input_field")
-    st.session_state["fires_text"] = fires_input
-    
-    if st.button("Randomize Fire Locations"):
-        lines = [l.strip().split() for l in grid_input.strip().split("\n") if l.strip()]
+    def _do_randomize_fires():
+        grid_src = st.session_state.get("grid_area", "")
+        lines = [l.strip().split() for l in grid_src.strip().split("\n") if l.strip()]
         walkable = []
         for r, row in enumerate(lines):
             for c, val in enumerate(row):
@@ -194,8 +189,10 @@ with st.sidebar.expander("Edit Building Layout & Fires", expanded=False):
                     walkable.append(f"{r},{c}")
         if len(walkable) >= 4:
             picked = random.sample(walkable, min(6, len(walkable)))
-            st.session_state["fires_text"] = "; ".join(picked)
-            st.rerun()
+            st.session_state["fires_input_field"] = "; ".join(picked)
+
+    fires_input = st.text_input("Fire Coordinates (r,c; r,c):", key="fires_input_field")
+    st.button("Randomize Fire Locations", on_click=_do_randomize_fires)
 
     single_cost = st.number_input("Single Attack Cost (ticks):", min_value=1, value=default_vals["single_cost"])
     splash_cost = st.number_input("Splash Attack Cost (ticks):", min_value=1, value=default_vals["splash_cost"])
