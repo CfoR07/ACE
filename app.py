@@ -1,7 +1,11 @@
 import streamlit as st
 import time
 import random
+import importlib
+import functions
+importlib.reload(functions)
 from functions import FirefightingSimulation
+
 
 st.set_page_config(page_title="Autonomous Firefighting Agent", layout="wide")
 
@@ -113,8 +117,8 @@ PRESETS = {
             [0, 1, 8, 9, 2, 0],
             [0, 0, 0, 0, 0, 0]
         ],
-        "fires": "3,4; 4,2; 1,3; 2,4; 3,1; 4,3",
-        "spread_rate": 8,
+        "fires": "4,2; 3,4; 2,4; 1,3",
+        "spread_rate": 10,
         "single_cost": 2,
         "splash_cost": 4
     },
@@ -129,10 +133,10 @@ PRESETS = {
             [0, 3, 2, 1, 2, 8, 10, 0],
             [0, 0, 0, 0, 0, 0, 0, 0]
         ],
-        "fires": "4,1; 6,6; 2,5; 4,6; 5,6; 6,3",
+        "fires": "6,6; 5,6; 6,5; 4,2; 2,5",
         "spread_rate": 10,
         "single_cost": 2,
-        "splash_cost": 5
+        "splash_cost": 4
     },
     "Preset 3: Warehouse & Storage (10x10)": {
         "grid": [
@@ -147,10 +151,10 @@ PRESETS = {
             [0, 1, 1, 2, 3, 4, 5, 6, 4, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ],
-        "fires": "4,4; 3,6; 8,2; 6,3; 1,8; 4,6; 6,5",
+        "fires": "4,4; 3,4; 4,5; 3,5; 6,4; 8,5",
         "spread_rate": 12,
         "single_cost": 2,
-        "splash_cost": 6
+        "splash_cost": 4
     }
 }
 
@@ -172,21 +176,16 @@ default_vals = PRESETS[preset_choice]
 # Check if preset changed to reset custom inputs
 if "current_preset" not in st.session_state or st.session_state["current_preset"] != preset_choice:
     st.session_state["current_preset"] = preset_choice
-    st.session_state["grid_text"] = "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])
-    st.session_state["fires_text"] = default_vals["fires"]
-    if "randomized_fires" in st.session_state:
-        del st.session_state["randomized_fires"]
+    st.session_state["grid_area"] = "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])
+    st.session_state["fires_input_field"] = default_vals["fires"]
 
 with st.sidebar.expander("Edit Building Layout & Fires", expanded=False):
     st.caption("0 = Wall, 1-10 = Floor Priority, 15 = Base Station")
-    grid_input = st.text_area("Grid Matrix:", value=st.session_state.get("grid_text", "\n".join([" ".join(map(str, row)) for row in default_vals["grid"]])), height=140, key="grid_area")
-    st.session_state["grid_text"] = grid_input
+    grid_input = st.text_area("Grid Matrix:", key="grid_area", height=140)
     
-    fires_input = st.text_input("Fire Coordinates (r,c; r,c):", value=st.session_state.get("fires_text", default_vals["fires"]), key="fires_input_field")
-    st.session_state["fires_text"] = fires_input
-    
-    if st.button("Randomize Fire Locations"):
-        lines = [l.strip().split() for l in grid_input.strip().split("\n") if l.strip()]
+    def _do_randomize_fires():
+        grid_src = st.session_state.get("grid_area", "")
+        lines = [l.strip().split() for l in grid_src.strip().split("\n") if l.strip()]
         walkable = []
         for r, row in enumerate(lines):
             for c, val in enumerate(row):
@@ -194,8 +193,10 @@ with st.sidebar.expander("Edit Building Layout & Fires", expanded=False):
                     walkable.append(f"{r},{c}")
         if len(walkable) >= 4:
             picked = random.sample(walkable, min(6, len(walkable)))
-            st.session_state["fires_text"] = "; ".join(picked)
-            st.rerun()
+            st.session_state["fires_input_field"] = "; ".join(picked)
+
+    fires_input = st.text_input("Fire Coordinates (r,c; r,c):", key="fires_input_field")
+    st.button("Randomize Fire Locations", on_click=_do_randomize_fires)
 
     single_cost = st.number_input("Single Attack Cost (ticks):", min_value=1, value=default_vals["single_cost"])
     splash_cost = st.number_input("Splash Attack Cost (ticks):", min_value=1, value=default_vals["splash_cost"])
@@ -262,8 +263,9 @@ if needs_reinit:
 
 sim = st.session_state.get("sim", None)
 
-if err:
-    st.error(f"Input Error: {err}")
+if err or sim is None:
+    if err:
+        st.error(f"Input Error: {err}")
     st.stop()
 
 # Main Dashboard Layout
