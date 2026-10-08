@@ -137,8 +137,10 @@ class FirefightingSimulation:
 
 
     def _ignite_fire(self, pos):
-        if self.grid[pos[0]][pos[1]] == 0:
-            return  # Walls cannot catch fire
+        if self.grid[pos[0]][pos[1]] == 0 or pos == self.station_pos:
+            return  # Walls and base station cannot catch fire
+        if pos == self.agent_pos:
+            return  # Safety guarantee: Robot chassis cannot catch fire (0 burns)
         if pos not in self.active_fires:
             self.active_fires[pos] = self.ticks
             self._assign_to_cluster(pos)
@@ -301,13 +303,19 @@ class FirefightingSimulation:
             self.ticks += 1
             # Dynamic upcoming fire alarms
             if self.fire_sources and self.ticks >= self.next_spawn_tick:
-                new_fire = self.fire_sources.pop(0)
-                self._ignite_fire(new_fire)
-                self.logs.append(f"Tick {self.ticks}: Dynamic fire alarm reported at {new_fire}!")
-                if self.fire_sources:
-                    self.next_spawn_tick = self.ticks + self.fire_spread_interval
+                # Safety constraint: dynamic fire alarm cannot ignite on agent or station
+                if self.fire_sources[0] == self.agent_pos:
+                    self.next_spawn_tick = self.ticks + 1  # Defer until agent vacates cell
+                elif self.fire_sources[0] == self.station_pos:
+                    self.fire_sources.pop(0)  # Station can never catch fire
                 else:
-                    self.next_spawn_tick = None
+                    new_fire = self.fire_sources.pop(0)
+                    self._ignite_fire(new_fire)
+                    self.logs.append(f"Tick {self.ticks}: Dynamic fire alarm reported at {new_fire}!")
+                    if self.fire_sources:
+                        self.next_spawn_tick = self.ticks + self.fire_spread_interval
+                    else:
+                        self.next_spawn_tick = None
             # Periodic fire spread
             if self.ticks % self.fire_spread_interval == 0 and self.active_fires:
                 self.spread_fire()

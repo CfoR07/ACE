@@ -57,7 +57,7 @@ def render_frame(sim, test_name, step_idx, out_path):
             ax.add_patch(rect)
             if txt:
                 ax.text(c + 0.5, rows - 1 - r + 0.5, txt, color='white', fontsize=12,
-                        ha='center', va='center', fontweight='bold')
+                        ha='center', va='center', fontweight='bold', fontname='Segoe UI Emoji')
                 
     ax.set_xlim(0, cols)
     ax.set_ylim(0, rows)
@@ -67,14 +67,17 @@ def render_frame(sim, test_name, step_idx, out_path):
     ax.set_yticklabels([str(rows - 1 - y) for y in range(rows)], color='#a0aec0', fontsize=8)
     ax.grid(color='#232936', linestyle=':', linewidth=0.5)
     
-    title = f"{test_name} | Step {step_idx:02d} | Tick {sim.ticks:02d} | Goal: {sim.current_goal}\nAction: {sim.last_action}"
-    ax.set_title(title, color='white', fontsize=9, pad=10)
+    path_len = len(getattr(sim, 'planned_path', []))
+    stack_depth = len(getattr(sim, 'dfs_stack', []))
+    title = f"{test_name} | Step {step_idx:02d} | Tick {sim.ticks:02d} | PathLen: {path_len} | Stack: {stack_depth}\nGoal: {sim.current_goal} | Action: {sim.last_action}"
+    ax.set_title(title, color='white', fontsize=8, pad=10)
     plt.tight_layout()
     plt.savefig(out_path, facecolor=fig.get_facecolor(), edgecolor='none')
     plt.close(fig)
 
 def run_evaluation(test_name, grid, station, fires, spread_rate, single_cost, splash_cost, max_steps=120):
     case_folder = os.path.join(SCREENSHOTS_DIR, test_name)
+    shutil.rmtree(case_folder, ignore_errors=True)
     os.makedirs(case_folder, exist_ok=True)
     log_file = os.path.join(TESTING_DIR, f"{test_name}_log.txt")
     
