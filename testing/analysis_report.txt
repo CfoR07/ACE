@@ -1,0 +1,114 @@
+================================================================================
+CRITICAL EVALUATION & PPT ALIGNMENT REPORT: FIREFIGHTING AGENT PROTOTYPE
+================================================================================
+Generated in /testing directory with accompanying logs and frame screenshots.
+Branch: experiment (safe isolated sandbox)
+Status: Analysis complete. Zero UI/look modifications made yet (awaiting user approval).
+
+--------------------------------------------------------------------------------
+PART 1: THE ROOT CAUSES OF THE ROBOT FREEZING ("Stopping with fires left")
+--------------------------------------------------------------------------------
+During automated stress-testing across all presets and edge cases, we reproduced the
+exact freeze reported by the user:
+
+REPRODUCTION 1: Preset 3 (Warehouse 10x10) - Frozen at Step 31
+- What happened: Fire spread to 12 active blocks in the warehouse.
+- Priority Engine selected Cluster 4 as highest utility.
+- However, all approach paths to Cluster 4 were blocked by walls and burning flames.
+- find_safe_stand_pos() returned (None, None).
+- In functions.py step():
+  Because stand_pos is None, the agent executed NO action.
+  It did not move, did not replan, and did not select an alternative reachable fire.
+  On every subsequent tick, it picked Cluster 4 again and failed again.
+  Result: Agent remained permanently frozen at position (2, 6) while 12 fires burned.
+
+REPRODUCTION 2: Edge Case Blocked High Priority (testing/test_deadlock.py)
+- Grid layout: Station at (0, 0), Fire A at (0, 3) [Priority 1], Fire B at (0, 5) [Priority 10].
+- Fire A blocks the single corridor to Fire B.
+- Priority Engine scores Fire B higher (Score = 25 vs Fire A Score = 4).
+- A* to Fire B fails because Fire A is an active hazard.
+- find_safe_stand_pos() returns None.
+- Result: Robot freezes at (0, 0) on Tick 1 without moving.
+
+REPRODUCTION 3: Delayed Spawning Cutoff Threshold
+- In functions.py __init__, user-entered fires are randomly split: only 1 to 3 ignite at start.
+- Remaining fires are queued in self.fire_sources with a random tick timer.
+- If the agent clears the first fires quickly and returns to base, functions.py line 363 triggers:
+  if (self.next_spawn_tick - self.ticks) > self.max_wait_limit:
+      self.is_completed = True
+- Result: Robot docks at base and announces "Mission Accomplished!" even though fires were left in queue!
+
+--------------------------------------------------------------------------------
+PART 2: DISCREPANCIES BETWEEN PPT (FINAL) AND PROTOTYPE CODEBASE
+--------------------------------------------------------------------------------
+
+1. MOVEMENT DISCREPANCY (PPT Slide 6 vs Code functions.py)
+   - PPT Slide 6 strictly specifies 4-directional movements:
+       * Move up - 1 tick
+       * Move down - 1 tick
+       * Move left - 1 tick
+       * Move right - 1 tick
+       (Zero diagonal movement exists in the PEAS or Action space).
+   - CODE BEHAVIOR:
+     When stepping into an extinguished block (recently_extinguished), the code sets:
+     self.agent_pos = target
+     If target was diagonally adjacent (e.g. (3,1) to (4,2)), the robot leaps diagonally
+     in 1 tick (Manhattan distance = 2)!
+     When backtracking via dfs_stack.pop(), it leaps diagonally back in 1 tick.
+   - Evidence from our screenshot logs:
+     * Preset 1: 6 diagonal leaps detected
+     * Preset 2: 9 diagonal leaps detected
+     * Preset 3: 6 diagonal leaps detected
+     * Edge Case 2: 4 diagonal leaps detected
+
+2. DYNAMIC REPLANNING PROMISE (PPT Slide 6 & 7 vs Code functions.py)
+   - PPT Slide 6 lists Decision: "Re-plan when the environment changes"
+   - PPT Slide 7 lists: "Dynamic Replanning: Re-evaluates if blocked."
+   - CODE BEHAVIOR:
+     Currently functions.py has NO fallback or reachability check in _select_target_cluster.
+     If a fire is unreachable, it never re-evaluates or targets reachable blocking fires.
+
+3. COST-BENEFIT SPLASH RULE (PPT Slide 7 & 8 vs Code functions.py & app.py)
+   - PPT Slide 8 states:
+     "If N = 1 -> Single Extinguish (2 ticks)"
+     "If N >= 2 -> Area Splash (4 ticks)"
+   - CODE BEHAVIOR:
+     functions.py line 316 uses an ad-hoc formula:
+     est_single_cost = (k * self.single_cost) + (2 * k + 1)
+     if k >= 2 and self.splash_cost < est_single_cost:
+     And app.py presets set splash_cost to 5 and 6 instead of the standard 4 ticks.
+
+4. AGENT CLASSIFICATION TITLE (PPT Slide 1 & 7 vs app.py)
+   - PPT Slide 1: "Station-Based Autonomous Firefighting Agent Using Classical AI Search"
+   - PPT Slide 7: "Utility-Based Agent (with Goal-Directed Search & Planning)"
+   - app.py line 270: "Model-Based Firefighting Agent (A* Search)"
+   - Mismatch: app.py uses legacy "Model-Based" text instead of "Utility-Based".
+
+5. STALE TELEMETRY "PLANNED PATH LENGTH" (app.py)
+   - In app.py, "Planned Path Length" displays len(sim.planned_path).
+   - During DFS inspection and backtracking, planned_path is never updated, remaining
+     frozen at "1" for dozens of steps.
+
+6. INITIAL FIRE HANDLING (PPT Slide 4 vs functions.py)
+   - PPT Slide 4 states: "Location to origin fires are given".
+   - In functions.py, some user-entered coordinates are delayed rather than active at start.
+
+--------------------------------------------------------------------------------
+PART 3: SUMMARY OF TESTING ARTIFACTS SAVED
+--------------------------------------------------------------------------------
+- Folder: /testing
+- Detailed step logs:
+  * testing/Preset_1_Small_Office_log.txt
+  * testing/Preset_2_Lab_8x8_log.txt
+  * testing/Preset_3_Warehouse_10x10_log.txt
+  * testing/Edge_Case_Blocked_High_Priority_log.txt
+  * testing/Edge_Case_Diagonal_StepIn_log.txt
+  * testing/Edge_Case_Delayed_Spawn_Cutoff_log.txt
+- Frame Screenshots:
+  * testing/screenshots/Preset_1_Small_Office/ (42 frames)
+  * testing/screenshots/Preset_2_Lab_8x8/ (121 frames)
+  * testing/screenshots/Preset_3_Warehouse_10x10/ (32 frames)
+  * testing/screenshots/Edge_Case_Blocked_High_Priority/ (16 frames)
+  * testing/screenshots/Edge_Case_Diagonal_StepIn/ (5 frames)
+  * testing/screenshots/Edge_Case_Delayed_Spawn_Cutoff/ (12 frames)
+================================================================================

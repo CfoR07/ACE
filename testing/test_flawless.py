@@ -2,66 +2,43 @@ import heapq
 import math
 import random
 
-# Movement directions (strictly 4-directional Manhattan: Up, Down, Left, Right)
 DIRS_4 = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-# Visibility / 8-neighborhood sensor range (3x3 area)
 DIRS_8 = [(-1, -1), (-1, 0), (-1, 1),
           (0, -1),           (0, 1),
           (1, -1),  (1, 0),  (1, 1)]
 
-
 def manhattan_distance(p1, p2):
     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
-
 def astar_search(grid, start, goal, active_fires):
-    """
-    Finds shortest safe path from start to goal avoiding walls (0) and active fire cells.
-    Returns list of coords from start to goal, or None if unreachable.
-    Strictly 4-directional movement (1 tick per step).
-    """
     if start == goal:
         return [start]
-    
     rows, cols = len(grid), len(grid[0])
     open_set = []
     heapq.heappush(open_set, (0, 0, start, [start]))
     visited = {start: 0}
-
     while open_set:
         _, g, current, path = heapq.heappop(open_set)
-
         if current == goal:
             return path
-
         for dr, dc in DIRS_4:
             nr, nc = current[0] + dr, current[1] + dc
             neighbor = (nr, nc)
-
-            # Check bounds, walls, and active fire
             if 0 <= nr < rows and 0 <= nc < cols:
                 if grid[nr][nc] == 0:
-                    continue  # wall
+                    continue
                 if neighbor in active_fires:
-                    continue  # unsafe (active fire)
-
+                    continue
                 new_g = g + 1
                 if neighbor not in visited or new_g < visited[neighbor]:
                     visited[neighbor] = new_g
                     f = new_g + manhattan_distance(neighbor, goal)
                     heapq.heappush(open_set, (f, new_g, neighbor, path + [neighbor]))
-
     return None
 
-
 def find_safe_stand_pos(grid, agent_pos, fire_pos, active_fires):
-    """
-    Finds the best safe neighbor to target fire to stand and extinguish.
-    Strictly enforces 4-directional (orthogonal) neighbors to guarantee zero diagonal movement.
-    """
     rows, cols = len(grid), len(grid[0])
     candidates = []
-
     for dr, dc in DIRS_4:
         nr, nc = fire_pos[0] + dr, fire_pos[1] + dc
         pos = (nr, nc)
@@ -70,38 +47,30 @@ def find_safe_stand_pos(grid, agent_pos, fire_pos, active_fires):
                 path = astar_search(grid, agent_pos, pos, active_fires)
                 if path is not None:
                     candidates.append((len(path), pos, path))
-
     if candidates:
         candidates.sort(key=lambda x: x[0])
         return candidates[0][1], candidates[0][2]
     return None, None
 
-
-class FirefightingSimulation:
-    def __init__(self, grid, station_pos, fire_sources, fire_spread_interval, single_cost, splash_cost):
+class FlawlessSim:
+    def __init__(self, grid, station_pos, fire_sources, fire_spread_interval=8, single_cost=2, splash_cost=4):
         self.grid = [row[:] for row in grid]
         self.rows = len(grid)
         self.cols = len(grid[0])
         self.station_pos = station_pos
         self.agent_pos = station_pos
-        
-        # Fire configuration
-        self.reported_fires = list(fire_sources)  # Preserved list of all reported fires
-        self.fire_spread_interval = fire_spread_interval  # ticks between spreads
+        self.reported_fires = list(fire_sources)
+        self.fire_spread_interval = fire_spread_interval
         self.single_cost = single_cost
         self.splash_cost = splash_cost
         
-        # State tracking
         self.ticks = 0
-        self.active_fires = {}  # (r, c) -> ignition_tick
-        self.spread_fires = set()  # (r, c) positions caused by spread
+        self.active_fires = {}
+        self.spread_fires = set()
         self.extinguished_history = set()
-        self.fire_clusters = []  # list of clusters: {'id', 'source', 'fires': set(), 'priority'}
+        self.fire_clusters = []
         self.next_cluster_id = 1
-        self.dfs_stack = []  # Stack tracking local cluster exploration depth
         
-        # Dynamic upcoming fire alarms:
-        # If > 3 fires provided, first 3 ignite immediately at start, remainder queued
         if len(self.reported_fires) > 3:
             initial_fires = self.reported_fires[:3]
             self.fire_sources = list(self.reported_fires[3:])
@@ -111,48 +80,37 @@ class FirefightingSimulation:
             self.fire_sources = []
             self.next_spawn_tick = None
         
-        # Performance metrics
         self.total_distance = 0
         self.fires_extinguished_count = 0
-        self.fires_cleared_tick = None  # Tick when last active fire was extinguished
-        self.response_times = []  # ticks taken from fire ignition to put out
-        self.severity_at_extinguish = []  # age in ticks of fire when put out
+        self.fires_cleared_tick = None
+        self.response_times = []
+        self.severity_at_extinguish = []
         self.logs = []
         self.last_action = "Standby"
         self.current_goal = "IDLE"
         self.planned_path = []
         self.is_completed = False
+        self.dfs_stack = []
 
-        # Ignite initial fires at start
         for pos in initial_fires:
             self._ignite_fire(pos)
-        self.logs.append(f"Tick {self.ticks}: Initial alert received for {len(initial_fires)} fire(s): {initial_fires}.")
-        if self.fire_sources:
-            self.logs.append(f"Tick {self.ticks}: {len(self.fire_sources)} additional fire(s) queued for dynamic reporting.")
 
-        # Precompute initial plan telemetry immediately
+        # Plan telemetry immediately at start
         self._update_plan_telemetry()
-
 
     def _ignite_fire(self, pos):
         if self.grid[pos[0]][pos[1]] == 0:
-            return  # Walls cannot catch fire
+            return
         if pos not in self.active_fires:
             self.active_fires[pos] = self.ticks
             self._assign_to_cluster(pos)
 
     def _assign_to_cluster(self, pos):
-        """
-        Groups fire into clusters. If fire is adjacent (within 3x3) to any fire in an existing cluster,
-        joins it; otherwise creates a new alert cluster.
-        """
         for cluster in self.fire_clusters:
             for f in cluster['fires']:
                 if abs(pos[0] - f[0]) <= 1 and abs(pos[1] - f[1]) <= 1:
                     cluster['fires'].add(pos)
                     return
-        
-        # New cluster
         c_id = self.next_cluster_id
         self.next_cluster_id += 1
         zone_pri = self.grid[pos[0]][pos[1]]
@@ -164,21 +122,13 @@ class FirefightingSimulation:
             'spawn_tick': self.ticks
         }
         self.fire_clusters.append(new_cluster)
-        self.logs.append(f"Tick {self.ticks}: New fire cluster #{c_id} registered at {pos} (Zone Priority: {zone_pri}).")
 
     def _update_clusters(self):
-        # Remove resolved fires from clusters and prune empty clusters
         for cluster in self.fire_clusters:
             cluster['fires'] = {p for p in cluster['fires'] if p in self.active_fires}
         self.fire_clusters = [c for c in self.fire_clusters if len(c['fires']) > 0]
 
     def _select_target_cluster(self):
-        """
-        Selects target cluster using Utility Function with Dynamic Replanning:
-        U(fire) = 3*Zone + 2*Severity - 1*Distance.
-        Filters by reachability: if top-utility cluster is currently blocked, replans
-        to target the highest-scoring reachable cluster or path-clearing fire.
-        """
         self._update_clusters()
         if not self.fire_clusters:
             return None
@@ -198,7 +148,6 @@ class FirefightingSimulation:
                 fallback_score = score
                 fallback_cluster = c
 
-            # Dynamic Replanning: verify if at least one fire in this cluster has an open safe stand position
             is_reachable = False
             for f in c['fires']:
                 stand, path = find_safe_stand_pos(self.grid, self.agent_pos, f, self.active_fires)
@@ -213,7 +162,6 @@ class FirefightingSimulation:
         if best_reachable_cluster is not None:
             return best_reachable_cluster
 
-        # Dynamic Replanning Fallback: if all top clusters are blocked, target the closest reachable active fire
         for f in sorted(self.active_fires.keys(), key=lambda f: manhattan_distance(self.agent_pos, f)):
             stand, path = find_safe_stand_pos(self.grid, self.agent_pos, f, self.active_fires)
             if stand is not None and path is not None:
@@ -224,11 +172,6 @@ class FirefightingSimulation:
         return fallback_cluster
 
     def _update_plan_telemetry(self):
-        """
-        Updates self.planned_path so that telemetry continuously and accurately reflects
-        the planned sequence of waypoints from current position to the destination.
-        Precomputes next target during extinctions and counts down smoothly during travel.
-        """
         if self.is_completed:
             self.planned_path = []
             return
@@ -263,10 +206,8 @@ class FirefightingSimulation:
                     self.current_goal = f'NAVIGATE_TO_CLUSTER_{cid}'
 
     def spread_fire(self):
-        """Spreads fire to adjacent walkable blocks (4-directional) at a bounded, realistic rate."""
         if not self.active_fires:
             return
-
         candidates = []
         for fire_pos in self.active_fires.keys():
             for dr, dc in DIRS_4:
@@ -275,7 +216,6 @@ class FirefightingSimulation:
                     if self.grid[nr][nc] != 0 and (nr, nc) not in self.active_fires:
                         if (nr, nc) != self.agent_pos and (nr, nc) != self.station_pos:
                             candidates.append((nr, nc))
-        
         if candidates:
             unique_candidates = list(set(candidates))
             num_to_spread = min(random.choice([1, 2]), len(unique_candidates))
@@ -283,13 +223,10 @@ class FirefightingSimulation:
             for pos in chosen:
                 self.spread_fires.add(pos)
                 self._ignite_fire(pos)
-            self.logs.append(f"Tick {self.ticks}: Fire spread to {len(chosen)} adjacent block(s): {chosen}.")
 
     def advance_time(self, duration_ticks):
-        """Advances clock by duration_ticks, triggering upcoming alarms and periodic spreads."""
         for _ in range(duration_ticks):
             self.ticks += 1
-            # Dynamic upcoming fire alarms
             if self.fire_sources and self.ticks >= self.next_spawn_tick:
                 new_fire = self.fire_sources.pop(0)
                 self._ignite_fire(new_fire)
@@ -298,12 +235,10 @@ class FirefightingSimulation:
                     self.next_spawn_tick = self.ticks + self.fire_spread_interval
                 else:
                     self.next_spawn_tick = None
-            # Periodic fire spread
             if self.ticks % self.fire_spread_interval == 0 and self.active_fires:
                 self.spread_fire()
 
     def get_fires_in_visibility(self):
-        """Returns active fires in agent's 8-neighborhood (3x3 sensor window)."""
         ar, ac = self.agent_pos
         visible = []
         for dr, dc in DIRS_8:
@@ -313,38 +248,30 @@ class FirefightingSimulation:
         return visible
 
     def perform_splash(self, fires_in_sight):
-        """Extinguishes all fires in 8-visibility range using Area Splash (4 ticks)."""
         cost = self.splash_cost
         for f in fires_in_sight:
             self._record_extinguish(f)
             self.extinguished_history.add(f)
             del self.active_fires[f]
             self.spread_fires.discard(f)
-        
         self.advance_time(cost)
         if not self.active_fires and not self.fire_sources and self.fires_cleared_tick is None:
             self.fires_cleared_tick = self.ticks
         self.current_goal = "EXTINGUISH_AREA_SPLASH"
         self.last_action = f"Splash Extinguish (cleared {len(fires_in_sight)} fires)"
-        self.logs.append(f"Tick {self.ticks}: Agent used AREA SPLASH (cost {cost}t) extinguishing {len(fires_in_sight)} fires.")
-        self.dfs_stack = []
         self._update_plan_telemetry()
 
     def perform_single(self, target_fire):
-        """Extinguishes single fire (2 ticks)."""
         cost = self.single_cost
         self._record_extinguish(target_fire)
         self.extinguished_history.add(target_fire)
         del self.active_fires[target_fire]
         self.spread_fires.discard(target_fire)
-        
         self.advance_time(cost)
         if not self.active_fires and not self.fire_sources and self.fires_cleared_tick is None:
             self.fires_cleared_tick = self.ticks
         self.current_goal = f"EXTINGUISH_FIRE_{target_fire}"
         self.last_action = f"Single Extinguish at {target_fire}"
-        self.logs.append(f"Tick {self.ticks}: Agent used SINGLE SPRAY (cost {cost}t) on fire at {target_fire}.")
-        self.dfs_stack = []
         self._update_plan_telemetry()
 
     def _record_extinguish(self, fire_pos):
@@ -355,14 +282,9 @@ class FirefightingSimulation:
         self.fires_extinguished_count += 1
 
     def step(self):
-        """Executes one simulation step for the agent using Classical AI (A*, Priority Engine, Cost-Benefit Splash)."""
         if self.is_completed:
             return
 
-        # ---------------------------------------------------------------------
-        # 1. IMMEDIATE SENSOR CHECK: Active fires in 3x3 visibility window
-        # PPT Cost-Benefit Rule: If k >= 2 -> Area Splash (4t); If k == 1 -> Single (2t)
-        # ---------------------------------------------------------------------
         visible_fires = self.get_fires_in_visibility()
         if visible_fires:
             if len(visible_fires) >= 2:
@@ -371,12 +293,7 @@ class FirefightingSimulation:
                 self.perform_single(visible_fires[0])
             return
 
-        # ---------------------------------------------------------------------
-        # 2. MISSION COMPLETE / RETURN TO STATION CHECK: No active fires left
-        # ---------------------------------------------------------------------
         if not self.active_fires:
-            self.dfs_stack = []
-            # If upcoming scheduled fires still pending, wait on standby at base station
             if self.fire_sources:
                 if self.agent_pos == self.station_pos:
                     self.current_goal = "STANDBY_AT_STATION"
@@ -395,7 +312,6 @@ class FirefightingSimulation:
                         self._update_plan_telemetry()
                         return
             else:
-                # All active and scheduled fires cleared!
                 if self.agent_pos == self.station_pos:
                     self.is_completed = True
                     self.planned_path = []
@@ -413,17 +329,7 @@ class FirefightingSimulation:
                         self.advance_time(1)
                         self._update_plan_telemetry()
                         return
-                    else:
-                        self.logs.append(f"Tick {self.ticks}: Warning - Path back to station blocked!")
-                        self.last_action = "Path to base blocked"
-                        self.advance_time(1)
-                        return
 
-        # ---------------------------------------------------------------------
-        # 3. GLOBAL GOAL DISPATCH: Move directly towards highest-utility fire
-        # Strictly orthogonal A* navigation towards the priority target.
-        # NEVER backtracks to empty cells when active fires wait.
-        # ---------------------------------------------------------------------
         target_cluster = self._select_target_cluster()
         if target_cluster:
             cluster_fires = sorted(target_cluster['fires'], key=lambda f: manhattan_distance(self.agent_pos, f))
@@ -459,3 +365,27 @@ class FirefightingSimulation:
                     else:
                         self.perform_single(vis[0])
                     return
+
+if __name__ == "__main__":
+    grid = [
+        [0, 0, 0, 0, 0, 0],
+        [0, 15, 2, 3, 2, 0],
+        [0, 1, 0, 0, 4, 0],
+        [0, 2, 1, 5, 3, 0],
+        [0, 1, 8, 9, 2, 0],
+        [0, 0, 0, 0, 0, 0]
+    ]
+    fires = [(4, 2), (3, 4), (1, 3)]
+    random.seed(42)
+    sim = FlawlessSim(grid, (1, 1), fires, fire_spread_interval=8, single_cost=2, splash_cost=4)
+
+    print("=== TRACE OF FLAWLESS TELEMETRY (PRESET 1) ===")
+    print(f"Step 00 | Pos: {sim.agent_pos} | PathLen={len(sim.planned_path)} | Goal: {sim.current_goal} | Action: {sim.last_action}")
+    for s in range(1, 25):
+        if sim.is_completed:
+            print(f"Completed at step {s}!")
+            break
+        p_before = sim.agent_pos
+        sim.step()
+        p_after = sim.agent_pos
+        print(f"Step {s:02d} | Tick {sim.ticks:02d} | Pos: {p_before} -> {p_after} | PathLen={len(sim.planned_path)} | Goal: {sim.current_goal:<24} | Action: {sim.last_action}")

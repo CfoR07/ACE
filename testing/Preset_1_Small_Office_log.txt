@@ -1,0 +1,47 @@
+==================================================
+TEST CASE: Preset_1_Small_Office
+Grid: 6x6 | Station: (1, 1) | Fires: [(3, 4), (4, 2), (1, 3), (2, 4), (3, 1), (4, 3)]
+Spread Rate: 8t | Single: 2t | Splash: 4t
+==================================================
+
+Step 00 | Tick 00 | Pos: (1, 1) | PlannedPathLen: 3 | Active: [(3, 4), (4, 2), (1, 3)] | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Standby
+Step 01 | Tick 01 | Pos: (2, 1) | Dist: 1 | PlannedPathLen: 2 | ActiveFires: 3 [(3, 4), (4, 2), (1, 3)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (2, 1) (Target Fire (4, 2), Pri 8)
+Step 02 | Tick 02 | Pos: (3, 1) | Dist: 2 | PlannedPathLen: 1 | ActiveFires: 3 [(3, 4), (4, 2), (1, 3)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (3, 1) (Target Fire (4, 2), Pri 8)
+Step 03 | Tick 04 | Pos: (3, 1) | Dist: 2 | PlannedPathLen: 2 | ActiveFires: 2 [(3, 4), (1, 3)] | SourcesLeft: 3 | Stack: [] | Goal: EXTINGUISH_FIRE_(4, 2) | Action: Single Extinguish at (4, 2)
+Step 04 | Tick 05 | Pos: (3, 2) | Dist: 3 | PlannedPathLen: 1 | ActiveFires: 2 [(3, 4), (1, 3)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (3, 2) (Target Fire (3, 4), Pri 3)
+Step 05 | Tick 06 | Pos: (3, 3) | Dist: 4 | PlannedPathLen: 0 | ActiveFires: 2 [(3, 4), (1, 3)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (3, 3) (Target Fire (3, 4), Pri 3)
+Step 06 | Tick 08 | Pos: (3, 3) | Dist: 4 | PlannedPathLen: 0 | ActiveFires: 3 [(1, 3), (2, 4), (3, 4)] | SourcesLeft: 2 | Stack: [] | Goal: EXTINGUISH_FIRE_(3, 4) | Action: Single Extinguish at (3, 4)
+Step 07 | Tick 12 | Pos: (3, 3) | Dist: 4 | PlannedPathLen: 3 | ActiveFires: 1 [(1, 3)] | SourcesLeft: 2 | Stack: [] | Goal: EXTINGUISH_AREA_SPLASH | Action: Splash Extinguish (cleared 2 fires)
+Step 08 | Tick 13 | Pos: (3, 4) | Dist: 5 | PlannedPathLen: 2 | ActiveFires: 1 [(1, 3)] | SourcesLeft: 2 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_3 | Action: Moving to (3, 4) (Target Fire (1, 3), Pri 3)
+Step 09 | Tick 14 | Pos: (2, 4) | Dist: 6 | PlannedPathLen: 1 | ActiveFires: 1 [(1, 3)] | SourcesLeft: 2 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_3 | Action: Moving to (2, 4) (Target Fire (1, 3), Pri 3)
+Step 10 | Tick 16 | Pos: (2, 4) | Dist: 6 | PlannedPathLen: 4 | ActiveFires: 3 [(3, 1), (4, 1), (2, 1)] | SourcesLeft: 1 | Stack: [] | Goal: EXTINGUISH_FIRE_(1, 3) | Action: Single Extinguish at (1, 3)
+Step 11 | Tick 17 | Pos: (1, 4) | Dist: 7 | PlannedPathLen: 3 | ActiveFires: 3 [(3, 1), (4, 1), (2, 1)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (1, 4) (Target Fire (2, 1), Pri 2)
+Step 12 | Tick 18 | Pos: (1, 3) | Dist: 8 | PlannedPathLen: 2 | ActiveFires: 3 [(3, 1), (4, 1), (2, 1)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (1, 3) (Target Fire (2, 1), Pri 2)
+Step 13 | Tick 19 | Pos: (1, 2) | Dist: 9 | PlannedPathLen: 1 | ActiveFires: 3 [(3, 1), (4, 1), (2, 1)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (1, 2) (Target Fire (2, 1), Pri 2)
+Step 14 | Tick 21 | Pos: (1, 2) | Dist: 9 | PlannedPathLen: 2 | ActiveFires: 2 [(3, 1), (4, 1)] | SourcesLeft: 1 | Stack: [] | Goal: EXTINGUISH_FIRE_(2, 1) | Action: Single Extinguish at (2, 1)
+Step 15 | Tick 22 | Pos: (1, 1) | Dist: 10 | PlannedPathLen: 1 | ActiveFires: 2 [(3, 1), (4, 1)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (1, 1) (Target Fire (3, 1), Pri 2)
+Step 16 | Tick 23 | Pos: (2, 1) | Dist: 11 | PlannedPathLen: 0 | ActiveFires: 2 [(3, 1), (4, 1)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (2, 1) (Target Fire (3, 1), Pri 2)
+Step 17 | Tick 25 | Pos: (2, 1) | Dist: 11 | PlannedPathLen: 7 | ActiveFires: 4 [(4, 1), (4, 3), (3, 1), (4, 4)] | SourcesLeft: 0 | Stack: [] | Goal: EXTINGUISH_FIRE_(3, 1) | Action: Single Extinguish at (3, 1)
+Step 18 | Tick 27 | Pos: (2, 1) | Dist: 11 | PlannedPathLen: 3 | ActiveFires: 3 [(4, 1), (4, 3), (4, 4)] | SourcesLeft: 0 | Stack: [] | Goal: EXTINGUISH_FIRE_(3, 1) | Action: Single Extinguish at (3, 1)
+Step 19 | Tick 28 | Pos: (3, 1) | Dist: 12 | PlannedPathLen: 2 | ActiveFires: 3 [(4, 1), (4, 3), (4, 4)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: Moving to (3, 1) (Target Fire (4, 3), Pri 9)
+Step 20 | Tick 30 | Pos: (3, 1) | Dist: 12 | PlannedPathLen: 2 | ActiveFires: 2 [(4, 3), (4, 4)] | SourcesLeft: 0 | Stack: [] | Goal: EXTINGUISH_FIRE_(4, 1) | Action: Single Extinguish at (4, 1)
+Step 21 | Tick 31 | Pos: (3, 2) | Dist: 13 | PlannedPathLen: 1 | ActiveFires: 2 [(4, 3), (4, 4)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: Moving to (3, 2) (Target Fire (4, 3), Pri 9)
+Step 22 | Tick 33 | Pos: (3, 2) | Dist: 13 | PlannedPathLen: 1 | ActiveFires: 3 [(4, 4), (3, 4), (4, 3)] | SourcesLeft: 0 | Stack: [] | Goal: EXTINGUISH_FIRE_(4, 3) | Action: Single Extinguish at (4, 3)
+Step 23 | Tick 35 | Pos: (3, 2) | Dist: 13 | PlannedPathLen: 1 | ActiveFires: 2 [(4, 4), (3, 4)] | SourcesLeft: 0 | Stack: [] | Goal: EXTINGUISH_FIRE_(4, 3) | Action: Single Extinguish at (4, 3)
+Step 24 | Tick 36 | Pos: (3, 3) | Dist: 14 | PlannedPathLen: 0 | ActiveFires: 2 [(4, 4), (3, 4)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: Moving to (3, 3) (Target Fire (3, 4), Pri 9)
+Step 25 | Tick 40 | Pos: (3, 3) | Dist: 14 | PlannedPathLen: 4 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: EXTINGUISH_AREA_SPLASH | Action: Splash Extinguish (cleared 2 fires)
+Step 26 | Tick 41 | Pos: (3, 2) | Dist: 15 | PlannedPathLen: 3 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((3, 2))
+Step 27 | Tick 42 | Pos: (3, 1) | Dist: 16 | PlannedPathLen: 2 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((3, 1))
+Step 28 | Tick 43 | Pos: (2, 1) | Dist: 17 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((2, 1))
+Step 29 | Tick 44 | Pos: (1, 1) | Dist: 18 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((1, 1))
+Step 30 | Tick 44 | Pos: (1, 1) | Dist: 18 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Safely docked at Base Station
+
+--- SUMMARY FOR Preset_1_Small_Office ---
+Completed: True
+Total Steps Taken: 30
+Total Ticks: 44
+Total Distance: 18
+Fires Extinguished: 13
+Freeze Detected: False
+Premature Completion: False
+Diagonal / Non-Orthogonal Jumps Count: 0
