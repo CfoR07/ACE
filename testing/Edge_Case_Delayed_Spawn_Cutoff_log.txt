@@ -11,15 +11,14 @@ Step 03 | Tick 04 | Pos: (0, 2) | Dist: 2 | PlannedPathLen: 1 | ActiveFires: 1 [
 Step 04 | Tick 05 | Pos: (0, 3) | Dist: 3 | PlannedPathLen: 1 | ActiveFires: 1 [(1, 3)] | SourcesLeft: 0 | Stack: [(0, 1), (0, 2)] | Goal: NAVIGATE_TO_FIRE_(1, 3) | Action: Repositioning to (0, 3) to extinguish (1, 3)
 Step 05 | Tick 07 | Pos: (0, 3) | Dist: 3 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(0, 1), (0, 2)] | Goal: EXTINGUISH_FIRE_(1, 3) | Action: Single Extinguish at (1, 3)
 Step 06 | Tick 08 | Pos: (1, 3) | Dist: 4 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(0, 1), (0, 2), (0, 3)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (1, 3) for DFS inspection
-Step 07 | Tick 09 | Pos: (0, 3) | Dist: 5 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(0, 1), (0, 2)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((0, 3))
-Step 08 | Tick 10 | Pos: (0, 2) | Dist: 6 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(0, 1)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((0, 2))
-Step 09 | Tick 11 | Pos: (0, 1) | Dist: 7 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((0, 1))
-Step 10 | Tick 12 | Pos: (0, 0) | Dist: 8 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((0, 0))
-Step 11 | Tick 12 | Pos: (0, 0) | Dist: 8 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Safely docked at Base Station
+Step 07 | Tick 09 | Pos: (0, 3) | Dist: 5 | PlannedPathLen: 3 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(0, 1), (0, 2), (0, 3)] | Goal: RETURN_STATION | Action: Returning to base ((0, 3))
+Step 08 | Tick 10 | Pos: (0, 2) | Dist: 6 | PlannedPathLen: 2 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(0, 1), (0, 2), (0, 3)] | Goal: RETURN_STATION | Action: Returning to base ((0, 2))
+Step 09 | Tick 11 | Pos: (0, 1) | Dist: 7 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(0, 1), (0, 2), (0, 3)] | Goal: RETURN_STATION | Action: Returning to base ((0, 1))
+Step 10 | Tick 12 | Pos: (0, 0) | Dist: 8 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Safely docked at Base Station
 
 --- SUMMARY FOR Edge_Case_Delayed_Spawn_Cutoff ---
 Completed: True
-Total Steps Taken: 11
+Total Steps Taken: 10
 Total Ticks: 12
 Total Distance: 8
 Fires Extinguished: 2

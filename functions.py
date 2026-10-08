@@ -269,16 +269,16 @@ class FirefightingSimulation:
                     self.planned_path = p[1:]
                     return
 
-        if self.dfs_stack:
-            self.planned_path = [self.dfs_stack[-1]]
-            return
-
-        if not self.active_fires and not self.splash_cluster_cells:
+        if not self.active_fires and not self.fire_sources and not self.splash_cluster_cells and self.pending_enter_cell is None:
             if self.agent_pos == self.station_pos:
                 self.planned_path = []
             else:
                 path = astar_search(self.grid, self.agent_pos, self.station_pos, set())
                 self.planned_path = path[1:] if path else []
+            return
+
+        if self.dfs_stack:
+            self.planned_path = [self.dfs_stack[-1]]
             return
 
 
@@ -520,8 +520,12 @@ class FirefightingSimulation:
         self.splash_cluster_cells = [c for c in self.splash_cluster_cells if c not in self.inspected_cells and c not in self.active_fires]
         self.pending_dfs_cells = self.splash_cluster_cells
 
+        if not self.splash_cluster_cells and not self.active_fires and not self.fire_sources:
+            self.in_connected_branch = False
+            self.splash_junction_cell = None
+
         # Condition A: In connected branch, must come back to splash junction cell!
-        if self.in_connected_branch and self.splash_junction_cell is not None:
+        if self.in_connected_branch and self.splash_junction_cell is not None and (self.splash_cluster_cells or self.active_fires or self.fire_sources):
             if self.agent_pos == self.splash_junction_cell:
                 self.in_connected_branch = False
             elif self.dfs_stack:
@@ -587,7 +591,8 @@ class FirefightingSimulation:
             self.in_connected_branch = False
 
         # Condition C: No visible fires, no pending enter cell, and no splash cells -> Backtrack out!
-        if self.pending_enter_cell is None and not self.splash_cluster_cells and self.dfs_stack:
+        # If active fires or queued fires remain in other zones, backtrack out of the current room to the corridor!
+        if self.pending_enter_cell is None and not self.splash_cluster_cells and (self.active_fires or self.fire_sources) and self.dfs_stack:
             backtrack_target = self.dfs_stack.pop()
             if manhattan_distance(self.agent_pos, backtrack_target) == 1:
                 self.agent_pos = backtrack_target
@@ -609,12 +614,13 @@ class FirefightingSimulation:
                     self._update_plan_telemetry()
                     return
 
-
         # ---------------------------------------------------------------------
         # PHASE 4: MISSION COMPLETE / RETURN TO STATION CHECK
+        # As stated in PPT Slide 6 & 9:
+        # "Decide what to do after extinguishing a fire: Select the next fire or return to the station in case of no active fires."
+        # "With all fires extinguished, A* computes shortest safe exit path along corridor to Base Station."
         # ---------------------------------------------------------------------
-        if not self.active_fires and not self.splash_cluster_cells and not self.dfs_stack:
-
+        if not self.active_fires and not self.splash_cluster_cells and self.pending_enter_cell is None:
             if self.fire_sources:
                 if self.agent_pos == self.station_pos:
                     self.current_goal = "STANDBY_AT_STATION"
@@ -639,15 +645,21 @@ class FirefightingSimulation:
                     self.current_goal = "RETURN_STATION"
                     self.last_action = "Safely docked at Base Station"
                     self.logs.append(f"Tick {self.ticks}: Mission complete! Agent successfully returned to Base Station.")
+                    self.dfs_stack.clear()
                     return
                 else:
                     path = astar_search(self.grid, self.agent_pos, self.station_pos, set())
                     if path and len(path) > 1:
                         self.agent_pos = path[1]
-                        self.current_goal = "RETURN_STATION"
-                        self.last_action = f"Returning to base ({self.agent_pos})"
                         self.total_distance += 1
                         self.advance_time(1)
+                        self.current_goal = "RETURN_STATION"
+                        self.last_action = f"Returning to base ({self.agent_pos})"
+                        if self.agent_pos == self.station_pos:
+                            self.is_completed = True
+                            self.last_action = "Safely docked at Base Station"
+                            self.logs.append(f"Tick {self.ticks}: Mission complete! Agent successfully returned to Base Station.")
+                            self.dfs_stack.clear()
                         self._update_plan_telemetry()
                         return
                     else:

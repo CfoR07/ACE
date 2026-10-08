@@ -14,18 +14,17 @@ Step 06 | Tick 09 | Pos: (3, 4) | Dist: 5 | PlannedPathLen: 1 | ActiveFires: 1 [
 Step 07 | Tick 11 | Pos: (3, 4) | Dist: 5 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3)] | Goal: EXTINGUISH_FIRE_(3, 5) | Action: Single Extinguish at (3, 5)
 Step 08 | Tick 12 | Pos: (3, 5) | Dist: 6 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3), (3, 4)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (3, 5) for DFS inspection
 Step 09 | Tick 13 | Pos: (3, 4) | Dist: 7 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((3, 4))
-Step 10 | Tick 14 | Pos: (2, 4) | Dist: 8 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3), (3, 4)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (2, 4) for DFS inspection
-Step 11 | Tick 15 | Pos: (3, 4) | Dist: 9 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((3, 4))
-Step 12 | Tick 16 | Pos: (3, 3) | Dist: 10 | PlannedPathLen: 4 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((3, 3))
-Step 13 | Tick 17 | Pos: (3, 2) | Dist: 11 | PlannedPathLen: 3 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((3, 2))
-Step 14 | Tick 18 | Pos: (3, 1) | Dist: 12 | PlannedPathLen: 2 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((3, 1))
-Step 15 | Tick 19 | Pos: (2, 1) | Dist: 13 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((2, 1))
-Step 16 | Tick 20 | Pos: (1, 1) | Dist: 14 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((1, 1))
-Step 17 | Tick 20 | Pos: (1, 1) | Dist: 14 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Safely docked at Base Station
+Step 10 | Tick 14 | Pos: (2, 4) | Dist: 8 | PlannedPathLen: 6 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3), (3, 4)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (2, 4) for DFS inspection
+Step 11 | Tick 15 | Pos: (3, 4) | Dist: 9 | PlannedPathLen: 5 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3), (3, 4)] | Goal: RETURN_STATION | Action: Returning to base ((3, 4))
+Step 12 | Tick 16 | Pos: (3, 3) | Dist: 10 | PlannedPathLen: 4 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3), (3, 4)] | Goal: RETURN_STATION | Action: Returning to base ((3, 3))
+Step 13 | Tick 17 | Pos: (3, 2) | Dist: 11 | PlannedPathLen: 3 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3), (3, 4)] | Goal: RETURN_STATION | Action: Returning to base ((3, 2))
+Step 14 | Tick 18 | Pos: (3, 1) | Dist: 12 | PlannedPathLen: 2 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3), (3, 4)] | Goal: RETURN_STATION | Action: Returning to base ((3, 1))
+Step 15 | Tick 19 | Pos: (2, 1) | Dist: 13 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(3, 3), (3, 4)] | Goal: RETURN_STATION | Action: Returning to base ((2, 1))
+Step 16 | Tick 20 | Pos: (1, 1) | Dist: 14 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Safely docked at Base Station
 
 --- SUMMARY FOR Case_A_Connected_Fire_Branch ---
 Completed: True
-Total Steps Taken: 17
+Total Steps Taken: 16
 Total Ticks: 20
 Total Distance: 14
 Fires Extinguished: 3
