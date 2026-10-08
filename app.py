@@ -259,8 +259,9 @@ if needs_reinit:
 
 sim = st.session_state.get("sim", None)
 
-if err:
-    st.error(f"Input Error: {err}")
+if err or sim is None:
+    if err:
+        st.error(f"Input Error: {err}")
     st.stop()
 
 # Main Dashboard Layout
