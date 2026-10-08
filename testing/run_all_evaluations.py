@@ -247,4 +247,19 @@ grid6 = [
 fires6 = [(0, 2), (1, 3)]
 results.append(run_evaluation("Edge_Case_Delayed_Spawn_Cutoff", grid6, (0, 0), fires6, spread_rate=50, single_cost=2, splash_cost=4))
 
+# 7. Case A: Splash with Connected Fire Branch (User Spec Verification)
+# Splash clears (3, 4) and (2, 4). Connected fire at (3, 5) seen from (3, 4).
+# Agent enters (3, 4), puts out (3, 5), enters (3, 5), comes back to (3, 4), enters (2, 4), and only then backtracks out!
+grid7 = [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 15, 2, 3, 0, 2, 0],
+    [0, 1, 0, 0, 4, 2, 0],
+    [0, 2, 1, 5, 3, 4, 0],
+    [0, 1, 8, 9, 2, 2, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+]
+fires7 = [(3, 4), (2, 4), (3, 5)]
+results.append(run_evaluation("Case_A_Connected_Fire_Branch", grid7, (1, 1), fires7, spread_rate=50, single_cost=2, splash_cost=4))
+
 print("\nAll evaluation tests completed! Logs and screenshots stored in:", TESTING_DIR)
+
