@@ -98,7 +98,9 @@ class FirefightingSimulation:
         self.extinguished_history = set()
         self.fire_clusters = []  # list of clusters: {'id', 'source', 'fires': set(), 'priority'}
         self.next_cluster_id = 1
-        self.dfs_stack = []  # Stack tracking local cluster exploration depth
+        self.dfs_stack = []  # Stack tracking local cluster exploration depth (LIFO memory stack)
+        self.pending_enter_cell = None
+        self.inspected_cells = set()
         
         # Dynamic upcoming fire alarms:
         # If > 3 fires provided, first 3 ignite immediately at start, remainder queued
@@ -233,6 +235,14 @@ class FirefightingSimulation:
             self.planned_path = []
             return
 
+        if self.pending_enter_cell is not None:
+            self.planned_path = [self.pending_enter_cell]
+            return
+
+        if self.dfs_stack:
+            self.planned_path = [self.dfs_stack[-1]]
+            return
+
         if not self.active_fires:
             if self.agent_pos == self.station_pos:
                 self.planned_path = []
@@ -327,11 +337,17 @@ class FirefightingSimulation:
         self.current_goal = "EXTINGUISH_AREA_SPLASH"
         self.last_action = f"Splash Extinguish (cleared {len(fires_in_sight)} fires)"
         self.logs.append(f"Tick {self.ticks}: Agent used AREA SPLASH (cost {cost}t) extinguishing {len(fires_in_sight)} fires.")
-        self.dfs_stack = []
+        
+        # Prepare to enter an orthogonally adjacent extinguished cell to inspect (PPT Slide 5, 8, 9)
+        for f in fires_in_sight:
+            if f not in self.inspected_cells and manhattan_distance(self.agent_pos, f) == 1:
+                self.pending_enter_cell = f
+                break
+
         self._update_plan_telemetry()
 
     def perform_single(self, target_fire):
-        """Extinguishes single fire (2 ticks)."""
+        """Extinguishes single fire (2 ticks). Strictly 4-orthogonal only."""
         cost = self.single_cost
         self._record_extinguish(target_fire)
         self.extinguished_history.add(target_fire)
@@ -344,7 +360,11 @@ class FirefightingSimulation:
         self.current_goal = f"EXTINGUISH_FIRE_{target_fire}"
         self.last_action = f"Single Extinguish at {target_fire}"
         self.logs.append(f"Tick {self.ticks}: Agent used SINGLE SPRAY (cost {cost}t) on fire at {target_fire}.")
-        self.dfs_stack = []
+        
+        # Prepare to enter extinguished cell for DFS inspection (PPT Slide 5, 8, 9)
+        if target_fire not in self.inspected_cells and manhattan_distance(self.agent_pos, target_fire) == 1:
+            self.pending_enter_cell = target_fire
+            
         self._update_plan_telemetry()
 
     def _record_extinguish(self, fire_pos):
@@ -355,28 +375,87 @@ class FirefightingSimulation:
         self.fires_extinguished_count += 1
 
     def step(self):
-        """Executes one simulation step for the agent using Classical AI (A*, Priority Engine, Cost-Benefit Splash)."""
+        """Executes one simulation step using Classical AI (A*, Priority Engine, Cost-Benefit Splash, DFS Backtracking)."""
         if self.is_completed:
             return
 
         # ---------------------------------------------------------------------
-        # 1. IMMEDIATE SENSOR CHECK: Active fires in 3x3 visibility window
-        # PPT Cost-Benefit Rule: If k >= 2 -> Area Splash (4t); If k == 1 -> Single (2t)
+        # PHASE 1: PENDING DFS ENTER (Enter Extinguished Cell - 1 tick)
+        # As specified in PPT Slide 5, 6, 8, 9:
+        # After extinguishing a fire from outside, agent enters the cold cell (1 tick),
+        # pushing the origin safe stand cell onto self.dfs_stack for backtracking.
+        # ---------------------------------------------------------------------
+        if self.pending_enter_cell is not None:
+            target_cell = self.pending_enter_cell
+            self.pending_enter_cell = None
+            if (target_cell not in self.active_fires and 
+                self.grid[target_cell[0]][target_cell[1]] != 0 and 
+                manhattan_distance(self.agent_pos, target_cell) == 1):
+                
+                self.dfs_stack.append(self.agent_pos)
+                self.agent_pos = target_cell
+                self.inspected_cells.add(target_cell)
+                self.total_distance += 1
+                self.advance_time(1)
+                self.current_goal = "DFS_INSPECT_ROOM"
+                self.last_action = f"Entering extinguished cell {self.agent_pos} for DFS inspection"
+                self.logs.append(f"Tick {self.ticks}: Agent entered extinguished room at {self.agent_pos} (Stack Depth: {len(self.dfs_stack)}).")
+                self._update_plan_telemetry()
+                return
+
+        # ---------------------------------------------------------------------
+        # PHASE 2: SENSOR CHECK (Extinguish Fire from Safe Stand Position)
+        # PPT Cost-Benefit Rule:
+        # - If k >= 2 fires in 8-visibility: Area Splash (4 ticks) - covers full 3x3 radius (diagonals allowed in splash).
+        # - If k == 1 fire in 8-visibility:
+        #     * If 4-orthogonally adjacent: Single Extinguish (2 ticks).
+        #     * If diagonal: FORBIDDEN to single-extinguish diagonally! Agent must navigate to an orthogonal neighbor.
         # ---------------------------------------------------------------------
         visible_fires = self.get_fires_in_visibility()
         if visible_fires:
             if len(visible_fires) >= 2:
                 self.perform_splash(visible_fires)
+                return
             else:
-                self.perform_single(visible_fires[0])
-            return
+                target_f = visible_fires[0]
+                # STRICTLY 4-ORTHOGONAL ONLY FOR SINGLE EXTINGUISH!
+                if manhattan_distance(self.agent_pos, target_f) == 1:
+                    self.perform_single(target_f)
+                    return
+                # Diagonal single extinguish is FORBIDDEN! Fall through to navigation.
 
         # ---------------------------------------------------------------------
-        # 2. MISSION COMPLETE / RETURN TO STATION CHECK: No active fires left
+        # PHASE 3: DFS BACKTRACKING (Pops memory stack when room branch is clear)
+        # As specified in PPT Slide 5, 8, 9:
+        # When inside an inspected cell and no active fires are in visibility,
+        # agent pops self.dfs_stack to backtrack step-by-step to the hallway.
+        # ---------------------------------------------------------------------
+        if self.dfs_stack:
+            backtrack_target = self.dfs_stack.pop()
+            if manhattan_distance(self.agent_pos, backtrack_target) == 1:
+                self.agent_pos = backtrack_target
+                self.total_distance += 1
+                self.advance_time(1)
+                self.current_goal = "DFS_BACKTRACK"
+                self.last_action = f"DFS Backtracking to hallway ({self.agent_pos})"
+                self.logs.append(f"Tick {self.ticks}: Room clear. Backtracked to {self.agent_pos} (Stack Depth: {len(self.dfs_stack)}).")
+                self._update_plan_telemetry()
+                return
+            else:
+                path = astar_search(self.grid, self.agent_pos, backtrack_target, self.active_fires)
+                if path and len(path) > 1:
+                    self.agent_pos = path[1]
+                    self.total_distance += 1
+                    self.advance_time(1)
+                    self.current_goal = "DFS_BACKTRACK"
+                    self.last_action = f"DFS Backtracking towards {backtrack_target} ({self.agent_pos})"
+                    self._update_plan_telemetry()
+                    return
+
+        # ---------------------------------------------------------------------
+        # PHASE 4: MISSION COMPLETE / RETURN TO STATION CHECK
         # ---------------------------------------------------------------------
         if not self.active_fires:
-            self.dfs_stack = []
-            # If upcoming scheduled fires still pending, wait on standby at base station
             if self.fire_sources:
                 if self.agent_pos == self.station_pos:
                     self.current_goal = "STANDBY_AT_STATION"
@@ -395,7 +474,6 @@ class FirefightingSimulation:
                         self._update_plan_telemetry()
                         return
             else:
-                # All active and scheduled fires cleared!
                 if self.agent_pos == self.station_pos:
                     self.is_completed = True
                     self.planned_path = []
@@ -420,9 +498,8 @@ class FirefightingSimulation:
                         return
 
         # ---------------------------------------------------------------------
-        # 3. GLOBAL GOAL DISPATCH: Move directly towards highest-utility fire
+        # PHASE 5: GLOBAL GOAL DISPATCH: A* navigation towards highest-utility fire
         # Strictly orthogonal A* navigation towards the priority target.
-        # NEVER backtracks to empty cells when active fires wait.
         # ---------------------------------------------------------------------
         target_cluster = self._select_target_cluster()
         if target_cluster:
@@ -457,5 +534,6 @@ class FirefightingSimulation:
                     if len(vis) >= 2:
                         self.perform_splash(vis)
                     else:
-                        self.perform_single(vis[0])
+                        if manhattan_distance(self.agent_pos, vis[0]) == 1:
+                            self.perform_single(vis[0])
                     return
