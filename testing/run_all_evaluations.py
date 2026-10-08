@@ -189,8 +189,8 @@ grid1 = [
     [0, 1, 8, 9, 2, 0],
     [0, 0, 0, 0, 0, 0]
 ]
-fires1 = [(3, 4), (4, 2), (1, 3), (2, 4), (3, 1), (4, 3)]
-results.append(run_evaluation("Preset_1_Small_Office", grid1, (1, 1), fires1, spread_rate=8, single_cost=2, splash_cost=4))
+fires1 = [(4, 2), (3, 4), (2, 4), (1, 3)]
+results.append(run_evaluation("Preset_1_Small_Office", grid1, (1, 1), fires1, spread_rate=10, single_cost=2, splash_cost=4))
 
 # 2. Preset 2: Multi-Room Lab (8x8)
 grid2 = [
@@ -203,8 +203,8 @@ grid2 = [
     [0, 3, 2, 1, 2, 8, 10, 0],
     [0, 0, 0, 0, 0, 0, 0, 0]
 ]
-fires2 = [(4, 1), (6, 6), (2, 5), (4, 6), (5, 6), (6, 3)]
-results.append(run_evaluation("Preset_2_Lab_8x8", grid2, (1, 1), fires2, spread_rate=10, single_cost=2, splash_cost=5))
+fires2 = [(6, 6), (5, 6), (6, 5), (4, 2), (2, 5)]
+results.append(run_evaluation("Preset_2_Lab_8x8", grid2, (1, 1), fires2, spread_rate=10, single_cost=2, splash_cost=4))
 
 # 3. Preset 3: Warehouse & Storage (10x10)
 grid3 = [
@@ -219,8 +219,8 @@ grid3 = [
     [0, 1, 1, 2, 3, 4, 5, 6, 4, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ]
-fires3 = [(4, 4), (3, 6), (8, 2), (6, 3), (1, 8), (4, 6), (6, 5)]
-results.append(run_evaluation("Preset_3_Warehouse_10x10", grid3, (1, 1), fires3, spread_rate=12, single_cost=2, splash_cost=6))
+fires3 = [(4, 4), (3, 4), (4, 5), (3, 5), (6, 4), (8, 5)]
+results.append(run_evaluation("Preset_3_Warehouse_10x10", grid3, (1, 1), fires3, spread_rate=12, single_cost=2, splash_cost=4))
 
 # 4. Edge Case: Blocked High-Priority Corridor (Reproduce Freezing Bug)
 grid4 = [

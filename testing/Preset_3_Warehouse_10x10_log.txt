@@ -1,94 +1,63 @@
 ==================================================
 TEST CASE: Preset_3_Warehouse_10x10
-Grid: 10x10 | Station: (1, 1) | Fires: [(4, 4), (3, 6), (8, 2), (6, 3), (1, 8), (4, 6), (6, 5)]
-Spread Rate: 12t | Single: 2t | Splash: 6t
+Grid: 10x10 | Station: (1, 1) | Fires: [(4, 4), (3, 4), (4, 5), (3, 5), (6, 4), (8, 5)]
+Spread Rate: 12t | Single: 2t | Splash: 4t
 ==================================================
 
-Step 00 | Tick 00 | Pos: (1, 1) | PlannedPathLen: 5 | Active: [(4, 4), (3, 6), (8, 2)] | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Standby
-Step 01 | Tick 01 | Pos: (1, 2) | Dist: 1 | PlannedPathLen: 4 | ActiveFires: 3 [(4, 4), (3, 6), (8, 2)] | SourcesLeft: 4 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (1, 2) (Target Fire (4, 4), Pri 10)
-Step 02 | Tick 02 | Pos: (1, 3) | Dist: 2 | PlannedPathLen: 3 | ActiveFires: 3 [(4, 4), (3, 6), (8, 2)] | SourcesLeft: 4 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (1, 3) (Target Fire (4, 4), Pri 10)
-Step 03 | Tick 03 | Pos: (1, 4) | Dist: 3 | PlannedPathLen: 2 | ActiveFires: 3 [(4, 4), (3, 6), (8, 2)] | SourcesLeft: 4 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (1, 4) (Target Fire (4, 4), Pri 10)
-Step 04 | Tick 04 | Pos: (2, 4) | Dist: 4 | PlannedPathLen: 1 | ActiveFires: 3 [(4, 4), (3, 6), (8, 2)] | SourcesLeft: 4 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (2, 4) (Target Fire (4, 4), Pri 10)
-Step 05 | Tick 05 | Pos: (3, 4) | Dist: 5 | PlannedPathLen: 0 | ActiveFires: 3 [(4, 4), (3, 6), (8, 2)] | SourcesLeft: 4 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (3, 4) (Target Fire (4, 4), Pri 10)
-Step 06 | Tick 07 | Pos: (3, 4) | Dist: 5 | PlannedPathLen: 1 | ActiveFires: 2 [(3, 6), (8, 2)] | SourcesLeft: 4 | Stack: [] | Goal: EXTINGUISH_FIRE_(4, 4) | Action: Single Extinguish at (4, 4)
-Step 07 | Tick 08 | Pos: (4, 4) | Dist: 6 | PlannedPathLen: 1 | ActiveFires: 2 [(3, 6), (8, 2)] | SourcesLeft: 4 | Stack: [(3, 4)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (4, 4) for DFS inspection
-Step 08 | Tick 09 | Pos: (3, 4) | Dist: 7 | PlannedPathLen: 1 | ActiveFires: 2 [(3, 6), (8, 2)] | SourcesLeft: 4 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: DFS Backtracking to hallway ((3, 4))
-Step 09 | Tick 10 | Pos: (3, 5) | Dist: 8 | PlannedPathLen: 0 | ActiveFires: 2 [(3, 6), (8, 2)] | SourcesLeft: 4 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (3, 5) (Target Fire (3, 6), Pri 5)
-Step 10 | Tick 12 | Pos: (3, 5) | Dist: 8 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (6, 3), (6, 4), (6, 2)] | SourcesLeft: 3 | Stack: [] | Goal: EXTINGUISH_FIRE_(3, 6) | Action: Single Extinguish at (3, 6)
-Step 11 | Tick 13 | Pos: (3, 6) | Dist: 9 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (6, 3), (6, 4), (6, 2)] | SourcesLeft: 3 | Stack: [(3, 5)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (3, 6) for DFS inspection
-Step 12 | Tick 14 | Pos: (3, 5) | Dist: 10 | PlannedPathLen: 5 | ActiveFires: 4 [(8, 2), (6, 3), (6, 4), (6, 2)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: DFS Backtracking to hallway ((3, 5))
-Step 13 | Tick 15 | Pos: (4, 5) | Dist: 11 | PlannedPathLen: 4 | ActiveFires: 4 [(8, 2), (6, 3), (6, 4), (6, 2)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (4, 5) (Target Fire (6, 4), Pri 4)
-Step 14 | Tick 16 | Pos: (4, 6) | Dist: 12 | PlannedPathLen: 3 | ActiveFires: 4 [(8, 2), (6, 3), (6, 4), (6, 2)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (4, 6) (Target Fire (6, 4), Pri 4)
-Step 15 | Tick 17 | Pos: (5, 6) | Dist: 13 | PlannedPathLen: 2 | ActiveFires: 4 [(8, 2), (6, 3), (6, 4), (6, 2)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (5, 6) (Target Fire (6, 4), Pri 4)
-Step 16 | Tick 18 | Pos: (6, 6) | Dist: 14 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (6, 3), (6, 4), (6, 2)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (6, 6) (Target Fire (6, 4), Pri 4)
-Step 17 | Tick 19 | Pos: (6, 5) | Dist: 15 | PlannedPathLen: 0 | ActiveFires: 4 [(8, 2), (6, 3), (6, 4), (6, 2)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_4 | Action: Moving to (6, 5) (Target Fire (6, 4), Pri 4)
-Step 18 | Tick 21 | Pos: (6, 5) | Dist: 15 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (6, 3), (6, 2)] | SourcesLeft: 3 | Stack: [] | Goal: EXTINGUISH_FIRE_(6, 4) | Action: Single Extinguish at (6, 4)
-Step 19 | Tick 22 | Pos: (6, 4) | Dist: 16 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (6, 3), (6, 2)] | SourcesLeft: 3 | Stack: [(6, 5)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (6, 4) for DFS inspection
-Step 20 | Tick 24 | Pos: (6, 4) | Dist: 16 | PlannedPathLen: 1 | ActiveFires: 5 [(8, 2), (6, 2), (1, 8), (6, 3), (8, 3)] | SourcesLeft: 2 | Stack: [(6, 5)] | Goal: EXTINGUISH_FIRE_(6, 3) | Action: Single Extinguish at (6, 3)
-Step 21 | Tick 26 | Pos: (6, 4) | Dist: 16 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (6, 2), (1, 8), (8, 3)] | SourcesLeft: 2 | Stack: [(6, 5)] | Goal: EXTINGUISH_FIRE_(6, 3) | Action: Single Extinguish at (6, 3)
-Step 22 | Tick 27 | Pos: (6, 3) | Dist: 17 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (6, 2), (1, 8), (8, 3)] | SourcesLeft: 2 | Stack: [(6, 5), (6, 4)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (6, 3) for DFS inspection
-Step 23 | Tick 29 | Pos: (6, 3) | Dist: 17 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (1, 8), (8, 3)] | SourcesLeft: 2 | Stack: [(6, 5), (6, 4)] | Goal: EXTINGUISH_FIRE_(6, 2) | Action: Single Extinguish at (6, 2)
-Step 24 | Tick 30 | Pos: (6, 2) | Dist: 18 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (1, 8), (8, 3)] | SourcesLeft: 2 | Stack: [(6, 5), (6, 4), (6, 3)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (6, 2) for DFS inspection
-Step 25 | Tick 31 | Pos: (6, 3) | Dist: 19 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (1, 8), (8, 3)] | SourcesLeft: 2 | Stack: [(6, 5), (6, 4)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((6, 3))
-Step 26 | Tick 32 | Pos: (6, 4) | Dist: 20 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (1, 8), (8, 3)] | SourcesLeft: 2 | Stack: [(6, 5)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((6, 4))
-Step 27 | Tick 33 | Pos: (6, 5) | Dist: 21 | PlannedPathLen: 7 | ActiveFires: 3 [(8, 2), (1, 8), (8, 3)] | SourcesLeft: 2 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: DFS Backtracking to hallway ((6, 5))
-Step 28 | Tick 34 | Pos: (6, 6) | Dist: 22 | PlannedPathLen: 6 | ActiveFires: 3 [(8, 2), (1, 8), (8, 3)] | SourcesLeft: 2 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: Moving to (6, 6) (Target Fire (1, 8), Pri 4)
-Step 29 | Tick 35 | Pos: (5, 6) | Dist: 23 | PlannedPathLen: 5 | ActiveFires: 3 [(8, 2), (1, 8), (8, 3)] | SourcesLeft: 2 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: Moving to (5, 6) (Target Fire (1, 8), Pri 4)
-Step 30 | Tick 36 | Pos: (4, 6) | Dist: 24 | PlannedPathLen: 3 | ActiveFires: 4 [(8, 2), (1, 8), (8, 3), (1, 7)] | SourcesLeft: 2 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: Moving to (4, 6) (Target Fire (1, 8), Pri 4)
-Step 31 | Tick 37 | Pos: (3, 6) | Dist: 25 | PlannedPathLen: 2 | ActiveFires: 5 [(8, 2), (1, 8), (8, 3), (1, 7), (4, 6)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: Moving to (3, 6) (Target Fire (1, 7), Pri 4)
-Step 32 | Tick 39 | Pos: (3, 6) | Dist: 25 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (1, 8), (8, 3), (1, 7)] | SourcesLeft: 1 | Stack: [] | Goal: EXTINGUISH_FIRE_(4, 6) | Action: Single Extinguish at (4, 6)
-Step 33 | Tick 40 | Pos: (4, 6) | Dist: 26 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (1, 8), (8, 3), (1, 7)] | SourcesLeft: 1 | Stack: [(3, 6)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (4, 6) for DFS inspection
-Step 34 | Tick 41 | Pos: (3, 6) | Dist: 27 | PlannedPathLen: 2 | ActiveFires: 4 [(8, 2), (1, 8), (8, 3), (1, 7)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: DFS Backtracking to hallway ((3, 6))
-Step 35 | Tick 42 | Pos: (2, 6) | Dist: 28 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (1, 8), (8, 3), (1, 7)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: Moving to (2, 6) (Target Fire (1, 7), Pri 4)
-Step 36 | Tick 43 | Pos: (1, 6) | Dist: 29 | PlannedPathLen: 0 | ActiveFires: 4 [(8, 2), (1, 8), (8, 3), (1, 7)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_5 | Action: Moving to (1, 6) (Target Fire (1, 7), Pri 4)
-Step 37 | Tick 45 | Pos: (1, 6) | Dist: 29 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (1, 8), (8, 3)] | SourcesLeft: 1 | Stack: [] | Goal: EXTINGUISH_FIRE_(1, 7) | Action: Single Extinguish at (1, 7)
-Step 38 | Tick 46 | Pos: (1, 7) | Dist: 30 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (1, 8), (8, 3)] | SourcesLeft: 1 | Stack: [(1, 6)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (1, 7) for DFS inspection
-Step 39 | Tick 48 | Pos: (1, 7) | Dist: 30 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (8, 3), (8, 1)] | SourcesLeft: 1 | Stack: [(1, 6)] | Goal: EXTINGUISH_FIRE_(1, 8) | Action: Single Extinguish at (1, 8)
-Step 40 | Tick 49 | Pos: (1, 8) | Dist: 31 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (6, 5)] | SourcesLeft: 0 | Stack: [(1, 6), (1, 7)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (1, 8) for DFS inspection
-Step 41 | Tick 50 | Pos: (1, 7) | Dist: 32 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (6, 5)] | SourcesLeft: 0 | Stack: [(1, 6)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((1, 7))
-Step 42 | Tick 51 | Pos: (1, 6) | Dist: 33 | PlannedPathLen: 5 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (6, 5)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_7 | Action: DFS Backtracking to hallway ((1, 6))
-Step 43 | Tick 52 | Pos: (2, 6) | Dist: 34 | PlannedPathLen: 4 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (6, 5)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_7 | Action: Moving to (2, 6) (Target Fire (6, 5), Pri 2)
-Step 44 | Tick 53 | Pos: (3, 6) | Dist: 35 | PlannedPathLen: 3 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (6, 5)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_7 | Action: Moving to (3, 6) (Target Fire (6, 5), Pri 2)
-Step 45 | Tick 54 | Pos: (4, 6) | Dist: 36 | PlannedPathLen: 2 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (6, 5)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_7 | Action: Moving to (4, 6) (Target Fire (6, 5), Pri 2)
-Step 46 | Tick 55 | Pos: (5, 6) | Dist: 37 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (6, 5)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_7 | Action: Moving to (5, 6) (Target Fire (6, 5), Pri 2)
-Step 47 | Tick 56 | Pos: (6, 6) | Dist: 38 | PlannedPathLen: 0 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (6, 5)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_7 | Action: Moving to (6, 6) (Target Fire (6, 5), Pri 2)
-Step 48 | Tick 58 | Pos: (6, 6) | Dist: 38 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (8, 3), (8, 1)] | SourcesLeft: 0 | Stack: [] | Goal: EXTINGUISH_FIRE_(6, 5) | Action: Single Extinguish at (6, 5)
-Step 49 | Tick 59 | Pos: (6, 5) | Dist: 39 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (8, 3), (8, 1)] | SourcesLeft: 0 | Stack: [(6, 6)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (6, 5) for DFS inspection
-Step 50 | Tick 60 | Pos: (6, 6) | Dist: 40 | PlannedPathLen: 3 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (8, 4)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_3 | Action: DFS Backtracking to hallway ((6, 6))
-Step 51 | Tick 61 | Pos: (6, 5) | Dist: 41 | PlannedPathLen: 2 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (8, 4)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_3 | Action: Moving to (6, 5) (Target Fire (8, 4), Pri 1)
-Step 52 | Tick 62 | Pos: (7, 5) | Dist: 42 | PlannedPathLen: 1 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (8, 4)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_3 | Action: Moving to (7, 5) (Target Fire (8, 4), Pri 1)
-Step 53 | Tick 63 | Pos: (8, 5) | Dist: 43 | PlannedPathLen: 0 | ActiveFires: 4 [(8, 2), (8, 3), (8, 1), (8, 4)] | SourcesLeft: 0 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_3 | Action: Moving to (8, 5) (Target Fire (8, 4), Pri 1)
-Step 54 | Tick 65 | Pos: (8, 5) | Dist: 43 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (8, 3), (8, 1)] | SourcesLeft: 0 | Stack: [] | Goal: EXTINGUISH_FIRE_(8, 4) | Action: Single Extinguish at (8, 4)
-Step 55 | Tick 66 | Pos: (8, 4) | Dist: 44 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 2), (8, 3), (8, 1)] | SourcesLeft: 0 | Stack: [(8, 5)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (8, 4) for DFS inspection
-Step 56 | Tick 68 | Pos: (8, 4) | Dist: 44 | PlannedPathLen: 1 | ActiveFires: 2 [(8, 2), (8, 1)] | SourcesLeft: 0 | Stack: [(8, 5)] | Goal: EXTINGUISH_FIRE_(8, 3) | Action: Single Extinguish at (8, 3)
-Step 57 | Tick 69 | Pos: (8, 3) | Dist: 45 | PlannedPathLen: 1 | ActiveFires: 2 [(8, 2), (8, 1)] | SourcesLeft: 0 | Stack: [(8, 5), (8, 4)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (8, 3) for DFS inspection
-Step 58 | Tick 71 | Pos: (8, 3) | Dist: 45 | PlannedPathLen: 1 | ActiveFires: 1 [(8, 1)] | SourcesLeft: 0 | Stack: [(8, 5), (8, 4)] | Goal: EXTINGUISH_FIRE_(8, 2) | Action: Single Extinguish at (8, 2)
-Step 59 | Tick 72 | Pos: (8, 2) | Dist: 46 | PlannedPathLen: 1 | ActiveFires: 1 [(8, 1)] | SourcesLeft: 0 | Stack: [(8, 5), (8, 4), (8, 3)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (8, 2) for DFS inspection
-Step 60 | Tick 74 | Pos: (8, 2) | Dist: 46 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(8, 5), (8, 4), (8, 3)] | Goal: EXTINGUISH_FIRE_(8, 1) | Action: Single Extinguish at (8, 1)
-Step 61 | Tick 75 | Pos: (8, 1) | Dist: 47 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(8, 5), (8, 4), (8, 3), (8, 2)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (8, 1) for DFS inspection
-Step 62 | Tick 76 | Pos: (8, 2) | Dist: 48 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(8, 5), (8, 4), (8, 3)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((8, 2))
-Step 63 | Tick 77 | Pos: (8, 3) | Dist: 49 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(8, 5), (8, 4)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((8, 3))
-Step 64 | Tick 78 | Pos: (8, 4) | Dist: 50 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(8, 5)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((8, 4))
-Step 65 | Tick 79 | Pos: (8, 5) | Dist: 51 | PlannedPathLen: 11 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((8, 5))
-Step 66 | Tick 80 | Pos: (7, 5) | Dist: 52 | PlannedPathLen: 10 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((7, 5))
-Step 67 | Tick 81 | Pos: (6, 5) | Dist: 53 | PlannedPathLen: 9 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((6, 5))
-Step 68 | Tick 82 | Pos: (6, 4) | Dist: 54 | PlannedPathLen: 8 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((6, 4))
-Step 69 | Tick 83 | Pos: (6, 3) | Dist: 55 | PlannedPathLen: 7 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((6, 3))
-Step 70 | Tick 84 | Pos: (6, 2) | Dist: 56 | PlannedPathLen: 6 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((6, 2))
-Step 71 | Tick 85 | Pos: (6, 1) | Dist: 57 | PlannedPathLen: 5 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((6, 1))
-Step 72 | Tick 86 | Pos: (5, 1) | Dist: 58 | PlannedPathLen: 4 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((5, 1))
-Step 73 | Tick 87 | Pos: (4, 1) | Dist: 59 | PlannedPathLen: 3 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((4, 1))
-Step 74 | Tick 88 | Pos: (3, 1) | Dist: 60 | PlannedPathLen: 2 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((3, 1))
-Step 75 | Tick 89 | Pos: (2, 1) | Dist: 61 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((2, 1))
-Step 76 | Tick 90 | Pos: (1, 1) | Dist: 62 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((1, 1))
-Step 77 | Tick 90 | Pos: (1, 1) | Dist: 62 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Safely docked at Base Station
+Step 00 | Tick 00 | Pos: (1, 1) | PlannedPathLen: 4 | Active: [(4, 4), (3, 4), (4, 5)] | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Standby
+Step 01 | Tick 01 | Pos: (1, 2) | Dist: 1 | PlannedPathLen: 3 | ActiveFires: 3 [(4, 4), (3, 4), (4, 5)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (1, 2) (Target Fire (3, 4), Pri 10)
+Step 02 | Tick 02 | Pos: (1, 3) | Dist: 2 | PlannedPathLen: 2 | ActiveFires: 3 [(4, 4), (3, 4), (4, 5)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (1, 3) (Target Fire (3, 4), Pri 10)
+Step 03 | Tick 03 | Pos: (1, 4) | Dist: 3 | PlannedPathLen: 1 | ActiveFires: 3 [(4, 4), (3, 4), (4, 5)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (1, 4) (Target Fire (3, 4), Pri 10)
+Step 04 | Tick 04 | Pos: (2, 4) | Dist: 4 | PlannedPathLen: 0 | ActiveFires: 3 [(4, 4), (3, 4), (4, 5)] | SourcesLeft: 3 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_1 | Action: Moving to (2, 4) (Target Fire (3, 4), Pri 10)
+Step 05 | Tick 06 | Pos: (2, 4) | Dist: 4 | PlannedPathLen: 1 | ActiveFires: 2 [(4, 4), (4, 5)] | SourcesLeft: 3 | Stack: [] | Goal: EXTINGUISH_FIRE_(3, 4) | Action: Single Extinguish at (3, 4)
+Step 06 | Tick 07 | Pos: (3, 4) | Dist: 5 | PlannedPathLen: 1 | ActiveFires: 2 [(4, 4), (4, 5)] | SourcesLeft: 3 | Stack: [(2, 4)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (3, 4) for DFS inspection
+Step 07 | Tick 11 | Pos: (3, 4) | Dist: 5 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 3 | Stack: [(2, 4)] | Goal: EXTINGUISH_AREA_SPLASH | Action: Splash Extinguish (cleared 2 fires)
+Step 08 | Tick 12 | Pos: (4, 4) | Dist: 6 | PlannedPathLen: 1 | ActiveFires: 2 [(3, 5), (3, 6)] | SourcesLeft: 2 | Stack: [(2, 4), (3, 4)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (4, 4) for DFS inspection
+Step 09 | Tick 13 | Pos: (4, 5) | Dist: 7 | PlannedPathLen: 1 | ActiveFires: 2 [(3, 5), (3, 6)] | SourcesLeft: 2 | Stack: [(2, 4), (3, 4)] | Goal: NAVIGATE_TO_FIRE_(3, 5) | Action: Repositioning to (4, 5) to extinguish (3, 5)
+Step 10 | Tick 17 | Pos: (4, 5) | Dist: 7 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 2 | Stack: [(2, 4), (3, 4)] | Goal: EXTINGUISH_AREA_SPLASH | Action: Splash Extinguish (cleared 2 fires)
+Step 11 | Tick 18 | Pos: (3, 5) | Dist: 8 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 2 | Stack: [(2, 4), (3, 4), (4, 5)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (3, 5) for DFS inspection
+Step 12 | Tick 19 | Pos: (4, 5) | Dist: 9 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 2 | Stack: [(2, 4), (3, 4)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((4, 5))
+Step 13 | Tick 20 | Pos: (3, 5) | Dist: 10 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 2 | Stack: [(2, 4)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking towards (3, 4) ((3, 5))
+Step 14 | Tick 21 | Pos: (3, 4) | Dist: 11 | PlannedPathLen: 5 | ActiveFires: 0 [] | SourcesLeft: 2 | Stack: [] | Goal: DFS_BACKTRACK | Action: DFS Backtracking towards (2, 4) ((3, 4))
+Step 15 | Tick 22 | Pos: (2, 4) | Dist: 12 | PlannedPathLen: 4 | ActiveFires: 0 [] | SourcesLeft: 2 | Stack: [] | Goal: RETURN_STATION | Action: Returning to standby ((2, 4))
+Step 16 | Tick 23 | Pos: (1, 4) | Dist: 13 | PlannedPathLen: 3 | ActiveFires: 0 [] | SourcesLeft: 2 | Stack: [] | Goal: RETURN_STATION | Action: Returning to standby ((1, 4))
+Step 17 | Tick 24 | Pos: (1, 3) | Dist: 14 | PlannedPathLen: 8 | ActiveFires: 2 [(6, 4), (6, 3)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Returning to standby ((1, 3))
+Step 18 | Tick 25 | Pos: (1, 2) | Dist: 15 | PlannedPathLen: 7 | ActiveFires: 2 [(6, 4), (6, 3)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (1, 2) (Target Fire (6, 3), Pri 5)
+Step 19 | Tick 26 | Pos: (1, 1) | Dist: 16 | PlannedPathLen: 6 | ActiveFires: 2 [(6, 4), (6, 3)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (1, 1) (Target Fire (6, 3), Pri 5)
+Step 20 | Tick 27 | Pos: (2, 1) | Dist: 17 | PlannedPathLen: 5 | ActiveFires: 2 [(6, 4), (6, 3)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (2, 1) (Target Fire (6, 3), Pri 5)
+Step 21 | Tick 28 | Pos: (3, 1) | Dist: 18 | PlannedPathLen: 4 | ActiveFires: 2 [(6, 4), (6, 3)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (3, 1) (Target Fire (6, 3), Pri 5)
+Step 22 | Tick 29 | Pos: (4, 1) | Dist: 19 | PlannedPathLen: 3 | ActiveFires: 2 [(6, 4), (6, 3)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (4, 1) (Target Fire (6, 3), Pri 5)
+Step 23 | Tick 30 | Pos: (5, 1) | Dist: 20 | PlannedPathLen: 2 | ActiveFires: 2 [(6, 4), (6, 3)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (5, 1) (Target Fire (6, 3), Pri 5)
+Step 24 | Tick 31 | Pos: (6, 1) | Dist: 21 | PlannedPathLen: 1 | ActiveFires: 2 [(6, 4), (6, 3)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (6, 1) (Target Fire (6, 3), Pri 5)
+Step 25 | Tick 32 | Pos: (6, 2) | Dist: 22 | PlannedPathLen: 0 | ActiveFires: 2 [(6, 4), (6, 3)] | SourcesLeft: 1 | Stack: [] | Goal: NAVIGATE_TO_CLUSTER_2 | Action: Moving to (6, 2) (Target Fire (6, 3), Pri 5)
+Step 26 | Tick 34 | Pos: (6, 2) | Dist: 22 | PlannedPathLen: 1 | ActiveFires: 1 [(6, 4)] | SourcesLeft: 1 | Stack: [] | Goal: EXTINGUISH_FIRE_(6, 3) | Action: Single Extinguish at (6, 3)
+Step 27 | Tick 35 | Pos: (6, 3) | Dist: 23 | PlannedPathLen: 1 | ActiveFires: 1 [(6, 4)] | SourcesLeft: 1 | Stack: [(6, 2)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (6, 3) for DFS inspection
+Step 28 | Tick 37 | Pos: (6, 3) | Dist: 23 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 5), (8, 4), (7, 5)] | SourcesLeft: 0 | Stack: [(6, 2)] | Goal: EXTINGUISH_FIRE_(6, 4) | Action: Single Extinguish at (6, 4)
+Step 29 | Tick 38 | Pos: (6, 4) | Dist: 24 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 5), (8, 4), (7, 5)] | SourcesLeft: 0 | Stack: [(6, 2), (6, 3)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (6, 4) for DFS inspection
+Step 30 | Tick 39 | Pos: (6, 5) | Dist: 25 | PlannedPathLen: 1 | ActiveFires: 3 [(8, 5), (8, 4), (7, 5)] | SourcesLeft: 0 | Stack: [(6, 2), (6, 3)] | Goal: NAVIGATE_TO_FIRE_(7, 5) | Action: Repositioning to (6, 5) to extinguish (7, 5)
+Step 31 | Tick 41 | Pos: (6, 5) | Dist: 25 | PlannedPathLen: 1 | ActiveFires: 2 [(8, 5), (8, 4)] | SourcesLeft: 0 | Stack: [(6, 2), (6, 3)] | Goal: EXTINGUISH_FIRE_(7, 5) | Action: Single Extinguish at (7, 5)
+Step 32 | Tick 42 | Pos: (7, 5) | Dist: 26 | PlannedPathLen: 1 | ActiveFires: 2 [(8, 5), (8, 4)] | SourcesLeft: 0 | Stack: [(6, 2), (6, 3), (6, 5)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (7, 5) for DFS inspection
+Step 33 | Tick 46 | Pos: (7, 5) | Dist: 26 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(6, 2), (6, 3), (6, 5)] | Goal: EXTINGUISH_AREA_SPLASH | Action: Splash Extinguish (cleared 2 fires)
+Step 34 | Tick 47 | Pos: (8, 5) | Dist: 27 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(6, 2), (6, 3), (6, 5), (7, 5)] | Goal: DFS_INSPECT_ROOM | Action: Entering extinguished cell (8, 5) for DFS inspection
+Step 35 | Tick 48 | Pos: (7, 5) | Dist: 28 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(6, 2), (6, 3), (6, 5)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((7, 5))
+Step 36 | Tick 49 | Pos: (6, 5) | Dist: 29 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(6, 2), (6, 3)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking to hallway ((6, 5))
+Step 37 | Tick 50 | Pos: (6, 4) | Dist: 30 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [(6, 2)] | Goal: DFS_BACKTRACK | Action: DFS Backtracking towards (6, 3) ((6, 4))
+Step 38 | Tick 51 | Pos: (6, 3) | Dist: 31 | PlannedPathLen: 7 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: DFS_BACKTRACK | Action: DFS Backtracking towards (6, 2) ((6, 3))
+Step 39 | Tick 52 | Pos: (6, 2) | Dist: 32 | PlannedPathLen: 6 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((6, 2))
+Step 40 | Tick 53 | Pos: (6, 1) | Dist: 33 | PlannedPathLen: 5 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((6, 1))
+Step 41 | Tick 54 | Pos: (5, 1) | Dist: 34 | PlannedPathLen: 4 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((5, 1))
+Step 42 | Tick 55 | Pos: (4, 1) | Dist: 35 | PlannedPathLen: 3 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((4, 1))
+Step 43 | Tick 56 | Pos: (3, 1) | Dist: 36 | PlannedPathLen: 2 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((3, 1))
+Step 44 | Tick 57 | Pos: (2, 1) | Dist: 37 | PlannedPathLen: 1 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((2, 1))
+Step 45 | Tick 58 | Pos: (1, 1) | Dist: 38 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Returning to base ((1, 1))
+Step 46 | Tick 58 | Pos: (1, 1) | Dist: 38 | PlannedPathLen: 0 | ActiveFires: 0 [] | SourcesLeft: 0 | Stack: [] | Goal: RETURN_STATION | Action: Safely docked at Base Station
 
 --- SUMMARY FOR Preset_3_Warehouse_10x10 ---
 Completed: True
-Total Steps Taken: 77
-Total Ticks: 90
-Total Distance: 62
-Fires Extinguished: 14
+Total Steps Taken: 46
+Total Ticks: 58
+Total Distance: 38
+Fires Extinguished: 10
 Freeze Detected: False
 Premature Completion: False
 Diagonal / Non-Orthogonal Jumps Count: 0

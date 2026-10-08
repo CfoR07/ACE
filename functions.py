@@ -430,7 +430,16 @@ class FirefightingSimulation:
                 if manhattan_distance(self.agent_pos, target_f) == 1:
                     self.perform_single(target_f)
                     return
-                # Diagonal single extinguish is FORBIDDEN! Fall through to navigation.
+                # Diagonal single extinguish is FORBIDDEN: navigate to safe orthogonal stand pos for this fire
+                stand, path = find_safe_stand_pos(self.grid, self.agent_pos, target_f, self.active_fires)
+                if stand and path and len(path) > 1:
+                    self.agent_pos = path[1]
+                    self.total_distance += 1
+                    self.advance_time(1)
+                    self.current_goal = f"NAVIGATE_TO_FIRE_{target_f}"
+                    self.last_action = f"Repositioning to {self.agent_pos} to extinguish {target_f}"
+                    self._update_plan_telemetry()
+                    return
 
         # ---------------------------------------------------------------------
         # PHASE 3: DFS BACKTRACKING (Pops memory stack when room branch is clear)
@@ -545,3 +554,9 @@ class FirefightingSimulation:
                         if manhattan_distance(self.agent_pos, vis[0]) == 1:
                             self.perform_single(vis[0])
                     return
+        
+        # Fallback if no reachable safe stand position exists (e.g. temporary blockage by spread fire)
+        self.logs.append(f"Tick {self.ticks}: Path to target fires currently blocked. Waiting for opportunity.")
+        self.last_action = "Waiting for path to clear"
+        self.advance_time(1)
+        self._update_plan_telemetry()
